@@ -9,6 +9,6 @@ public class VariableTest {
 
 //        int num = 12345678900;
         long lNum = 12345678900L;
-        System.out.println(lNum
+        System.out.println(lNum);
     }
 }
