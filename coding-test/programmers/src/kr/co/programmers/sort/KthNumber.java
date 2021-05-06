@@ -1,4 +1,4 @@
-package kr.co.programmers.practice;
+package kr.co.programmers.sort;
 
 import java.util.Arrays;
 
