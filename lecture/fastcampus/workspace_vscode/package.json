@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "echo \"Hello, world!\""
+    "debug": "node src/backend-part1/ch03/main.js"    
   },
   "devDependencies": {
     "@types/node": "^16.11.12",
