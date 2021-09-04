@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": "16.13.1"
+  },
   "scripts": {
     "debug": "node src/backend-part1/ch03/main.js"    
   },
