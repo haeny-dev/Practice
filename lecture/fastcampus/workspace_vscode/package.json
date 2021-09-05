@@ -3,7 +3,8 @@
     "node": "16.13.1"
   },
   "scripts": {
-    "debug": "node src/backend-part1/ch03/main.js"    
+    "debug": "node src/backend-part1/ch03/main.js",
+    "build": "esbuild src/backend-part1/ch04/transpile.js --bundle --outfile=src/backend-part1/ch04/build/transpile.js --target=node12.22"
   },
   "devDependencies": {
     "@types/node": "^16.11.12",
@@ -14,5 +15,9 @@
     "eslint-plugin-node": "^11.1.0",
     "prettier": "^2.5.1",
     "typescript": "^4.5.2"
+  },
+  "dependencies": {
+    "core-js": "^3.19.3",
+    "esbuild": "^0.14.2"
   }
 }
