@@ -3,6 +3,7 @@
     "node": "16.13.1"
   },
   "scripts": {
+    "server": "nodemon src/backend-part1/ch05/main.js",
     "debug": "node src/backend-part1/ch03/main.js",
     "build": "esbuild src/backend-part1/ch04/transpile.js --bundle --outfile=src/backend-part1/ch04/build/transpile.js --target=node12.22"
   },
@@ -13,6 +14,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
+    "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
     "typescript": "^4.5.2"
   },
