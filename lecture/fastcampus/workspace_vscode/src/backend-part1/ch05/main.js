@@ -11,35 +11,6 @@
 
 const http = require('http')
 
-/**
- * @typedef Post
- * @property {string} id
- * @property {string} title
- * @property {string} content
- */
-
-/** @type {Post[]} */
-const posts = [
-  {
-    id: 'my_first_post',
-    title: 'My first post',
-    content: 'Hello!',
-  },
-  {
-    id: 'my_second_post',
-    title: '나의 두번째 포스트',
-    content: 'Second Post!',
-  },
-]
-
-/**
- * Post
- *
- * GET /posts
- * GET /posts/:id
- * POST /posts
- */
-
 // const server = http.createServer((req, res) => {
 //   const POSTS_ID_REGEX = /^\/posts\/([a-zA-Z0-9-_]+)$/
 //   const postIdRegexResult =
@@ -107,13 +78,36 @@ const server = http.createServer((req, res) => {
         _route.method === req.method
     )
 
-    if (!route) {
+    if (!req.url || !route) {
       res.statusCode = 404
       res.end('Not found.')
       return
     }
 
-    const result = await route.callback()
+    const regexResult = route.url.exec(req.url)
+
+    if (!regexResult) {
+      res.statusCode = 404
+      res.end('Not found.')
+      return
+    }
+
+    /** @type {Object.<string, *> | undefined} */
+    const reqBody =
+      (req.headers['content-type'] === 'application/json' &&
+        (await new Promise((resolve, reject) => {
+          req.setEncoding('utf-8')
+          req.on('data', (data) => {
+            try {
+              resolve(JSON.parse(data))
+            } catch {
+              reject(new Error('Ill-formed json'))
+            }
+          })
+        }))) ||
+      undefined
+
+    const result = await route.callback(regexResult, reqBody)
     res.statusCode = result.statusCode
 
     if (typeof result.body === 'string') {
