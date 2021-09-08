@@ -3,9 +3,7 @@
     "node": "16.13.1"
   },
   "scripts": {
-    "server": "nodemon src/backend-part1/ch05/main.js",
-    "debug": "node src/backend-part1/ch03/main.js",
-    "build": "esbuild src/backend-part1/ch04/transpile.js --bundle --outfile=src/backend-part1/ch04/build/transpile.js --target=node12.22"
+    "debug": "node src/main.js"
   },
   "devDependencies": {
     "@types/node": "^16.11.12",

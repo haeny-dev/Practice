@@ -44,7 +44,7 @@
 
 const fs = require('fs')
 
-const DB_JSON_FILENAME = 'src/backend-part1/ch05/database.json'
+const DB_JSON_FILENAME = 'database.json'
 
 /** @returns {Promise<Post[]>} */
 async function getPosts() {
