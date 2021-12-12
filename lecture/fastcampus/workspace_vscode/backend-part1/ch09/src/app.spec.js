@@ -13,7 +13,7 @@ test('retreieve user json', async () => {
   })
 })
 
-test('retrieve user page', async () => {₩
+test('retrieve user page', async () => {
   const result = await request.get('/users/15').accept('text/html')
   expect(result.text).toMatch(/^<html>.*<\/html>$/)
 })
