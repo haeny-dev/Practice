@@ -2,18 +2,15 @@
 
 const express = require('express')
 
-const bodyParser = require('body-parser')
-
-const fs = require('fs')
+const userRouter = express.Router()
 
 const app = express()
-app.use(bodyParser.json())
+app.use(express.json())
+
 app.set('views', 'src/views')
 app.set('view engine', 'pug')
 
 const PORT = 4000
-
-const userRouter = express.Router()
 
 /**
  * /users 와 같은 prefix 가 반복되는 경우
@@ -70,6 +67,7 @@ userRouter.post('/:id/nickname', (req, res) => {
 })
 
 app.use('/users', userRouter)
+app.use('/public', express.static('src/public'))
 
 app.get('/', (req, res) => {
   res.render('index', {
