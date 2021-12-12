@@ -8,6 +8,8 @@ const fs = require('fs')
 
 const app = express()
 app.use(bodyParser.json())
+app.set('views', 'src/views')
+app.set('view engine', 'pug')
 
 const PORT = 4000
 
@@ -26,6 +28,9 @@ const USERS = {
   15: {
     nickname: 'foo',
   },
+  16: {
+    nickname: 'bar',
+  },
 }
 
 userRouter.param('id', (req, res, next, value) => {
@@ -35,10 +40,18 @@ userRouter.param('id', (req, res, next, value) => {
   next()
 })
 
+/* /users/15 */
 userRouter.get('/:id', (req, res) => {
-  console.log('userRouter get ID')
-  // @ts-ignore
-  res.send(req.user)
+  const resMimeType = req.accepts(['json', 'html'])
+
+  if (resMimeType === 'json') {
+    // @ts-ignore
+    res.send(req.user)
+  } else if (resMimeType === 'html') {
+    res.render('user-profile', {
+      nickname: req.user.nickname,
+    })
+  }
 })
 
 userRouter.post('/', (req, res) => {
@@ -58,20 +71,28 @@ userRouter.post('/:id/nickname', (req, res) => {
 
 app.use('/users', userRouter)
 
-/**
- * Path
- * - Path
- * - Path pattern
- * - Path regex
- * - Path array
- */
-app.post('/ab?cd', (req, res) => {
-  res.send('Root - POST')
+app.get('/', (req, res) => {
+  res.render('index', {
+    message: 'Hello, pug!!!',
+  })
 })
 
 app.listen(PORT, () => {
   console.log(`The Express server is listening at port : ${PORT}`)
 })
+
+/**
+ * Ch09.Express로 웹 사이트 만들기 > 03.REST API 라우팅하기
+ * Path
+ * - Path
+ * - Path pattern
+ * - Path regex
+ * - Path array
+ *
+ *  app.post('/ab?cd', (req, res) => {
+ *    res.send('Root - POST')
+ *  })
+ */
 
 /* Ch09. Express로 웹 사이트 만들기 > 02.미들웨어 개념 이해하고 만들어보기
 app.use('/', async (req, res, next) => {
