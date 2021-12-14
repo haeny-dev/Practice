@@ -7,6 +7,7 @@
 const http = require('http')
 const { createApi } = require('unsplash-js')
 const { default: fetch } = require('node-fetch')
+const sharp = require('sharp')
 
 // @ts-ignore
 const unsplash = createApi({
@@ -39,6 +40,7 @@ async function searchImage(query) {
 
 const server = http.createServer((req, res) => {
   async function main() {
+    req.url
     const result = await searchImage('mountain')
     const resp = await fetch(result.url)
     resp.body.pipe(res)
