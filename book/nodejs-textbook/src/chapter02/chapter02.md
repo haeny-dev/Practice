@@ -425,3 +425,140 @@ newZero.sayName()
   ```
 
 ## 📌 2.2 프런트엔드 자바스크립트
+
+### ➕ 2.2.1 AJAX
+
+- AJAX(Asynchronous Javascript And XML)는 비동기적 웹 서비스를 개발할 때 사용하는 기법입니다.
+- 이름에 XML이 있지만 꼭 XML을 사용해야 하는 것은 아니며, 요즘에는 JSON을 많이 사용합니다.
+- AJAX 요청은 jQuery나 axios 같은 라이브러리를 이용해서 보냅니다.
+
+  ```javascript
+  axios
+    .get('https://www.zerocho.com/api/get')
+    .then((result) => {
+      console.log(result)
+      console.log(result.data)
+    })
+    .catch((error) => {
+      console.error(error)
+    })
+  ```
+
+- axios.get도 내부에 Promise 로 구현되어 있어, then 과 catch를 사용할 수 있습니다.
+- 프로미스이므로 async/await 방식으로 변경할 수 있습니다.
+
+  ```javascript
+  ;(async () => {
+    try {
+      const result = await axios.get('https://www.zerocho.com/api/get')
+      console.log(result)
+      console.log(result.data)
+    } catch (error) {
+      console.error(error)
+    }
+  })()
+  ```
+
+- POST 방식의 호출
+
+  ```javascript
+  ;(async () => {
+    try {
+      const result = await axios.post('https://www.zerocho.com/api/post/json', {
+        name: 'zerocho',
+        birth: 1994,
+      })
+      console.log(result)
+      console.log(result.data)
+    } catch (error) {
+      console.error(error)
+    }
+  })()
+  ```
+
+### ➕ 2.2.2 FormData
+
+- HTML form 태그의 데이터를 동적으로 제어할 수 있는 기능입니다.
+
+```javascript
+const formData = new FormData()
+formData.append('name', 'zerocho')
+formData.append('item', 'orange')
+formData.append('item', 'melon')
+formData.has('item') // true
+formData.has('money') // false
+formData.get('item') // orange
+formData.getAll('item') // ['orange', 'melon']
+formData.append('test', ['hi', 'zero'])
+formData.get('test') // hi, zero
+formData.delete('test')
+formData.get('test') // null
+formData.set('item', 'apple')
+formData.getAll('item') // ['apple']
+```
+
+- 생성된 객체의 append 메서드로 키-값 형식의 데이터를 저장할 수 있습니다.
+- 키 하나에 여러 개의 값을 추가해도 됩니다.
+- FormData 객체를 이용하여 axios 로 데이터를 보낼 수 있습니다.
+
+```javascript
+;(async () => {
+  try {
+    const formData = new FormData()
+    formData.append('name', 'zerocho')
+    formData.append('birth', 1994)
+    const result = await axios.post('https://www.zerocho.com/api/post/formdata')
+    console.log(result)
+    console.log(result.data)
+  } catch (error) {
+    console.error(error)
+  }
+})()
+```
+
+### ➕ 2.2.3 encodeURIComponent, decodeURIComponent
+
+- `http://localhost:4000/search/노드` 와 같이 한글이 들어가는 경우 서버가 한글 주소를 이해하지 못하는 경우가 있는데,
+- 이런 경우 window 객체의 메서드인 encodeURIComponent 메서드를 사용합니다.
+
+```javascript
+;(async () => {
+  try {
+    const result = await axios.get(
+      `https://www.zerocho.com/api/search/${encodeURIComponent('노드')}`
+    )
+    console.log(result)
+    console.log(result.data)
+  } catch (error) {
+    console.error(error)
+  }
+})()
+```
+
+- `노드` 라는 한글이 `%EB%85%B8%EB%93%9C` 라는 문자열로 변환되었습니다.
+- 받는 쪽에서는 decodeURIComponent를 사용하면 됩니다.
+
+### ➕ 2.2.4 데이터 속성과 dataset
+
+- 노드를 웹 서버로 사용하는 경우, 클라이언트(프런트엔드)와 빈번하게 데이터를 주고받게 됩니다.
+- 프런트엔드에 데이터를 내려보낼 때 가장 고려해야 할 점은 보안입니다. 비밀번호와 같은 민감한 정보는 내려보내지 않아야 합니다.
+- 보안과 무관한 데이터를 내려보낼 때, 자바스크립트 변수에 저장해도되지만 HTML과 관련된 데이터를 저장하는 공식적인 방법이 데이터 속성(data attribute) 입니다.
+
+```html
+<html>
+  <ul>
+    <li data-id="1" data-user-job="programmer">Zero</li>
+    <li data-id="2" data-user-job="designer">Nero</li>
+    <li data-id="3" data-user-job="programmer">Hero</li>
+    <li data-id="4" data-user-job="ceo">Kero</li>
+  </ul>
+  <script>
+    console.log(document.querySelector('li').dataset)
+    // { id : '1', userJob: 'programmer' }
+  </script>
+</html>
+```
+
+- 태그의 속성으로 data- 로 시작하는 이들이 데이터 속성입니다.
+- script 에서 dataset 속성을 통해 태그의 데이터 속성에 접근이 가능합니다.
+- 반대로 dataset 에 데이터를 넣어도 HTML 태그에 반영됩니다.
