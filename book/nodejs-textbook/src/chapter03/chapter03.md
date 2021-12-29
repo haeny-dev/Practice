@@ -959,6 +959,334 @@ process.stderr.on('data', (data) => {
 
 ## 📌 3.6 파일 시스템 접근하기
 
+- fs 모듈은 파일 시스템에 접근하는 모듈입니다.
+- 즉, 파일을 생성하거나 삭제하고, 읽거나 쓸 수 있습니다.
+
+  ```javascript
+  const fs = require('fs')
+
+  fs.readFile(`./readme.txt`, (err, data) => {
+    if (err) {
+      throw err
+    }
+
+    console.log(data)
+    console.log(data.toString())
+  })
+
+  // 출력결과
+  <Buffer ec a0 80 eb a5 bc 20 ec 9d bd ec 96 b4 ec a3 bc ec 84 b8 ec 9a 94 2e>
+  저를 읽어주세요.
+  ```
+
+  - 여기서 파일의 경로가 현재 파일 기준이 아니라 node 명령어를 실행하는 콘솔 기준이라는 점에 유의해야 합니다.
+  - readFile의 결과물은 `버퍼(buffer)` 라는 형식입니다.
+
+- fs는 기본적으로 콜백 형식의 모듈이므로 fs모듈을 프로미스 형식으로 바꿔보겠습니다.
+
+  ```javascript
+  const fs = require('fs')
+
+  async function main() {
+    try {
+      const data = await fs.promises.readFile(`${__dirname}/readme.txt`)
+      console.log(data)
+      console.log(data.toString())
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  main()
+  ```
+
+- 파일 만들기
+
+  ```javascript
+  const fs = require('fs')
+
+  fs.promises
+    .writeFile(`${__dirname}/writeme.txt`, '글이 입력됩니다.')
+    .then(() => fs.promises.readFile(`${__dirname}/writeme.txt`))
+    .then((data) => {
+      console.log(data.toString())
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+  ```
+
+### ➕ 3.6.1 동기 메서드와 비동기 메서드
+
+- 노드는 대부분의 메서드를 비동기 방식으로 처리합니다.
+
+- 파일 하나를 여러 번 읽어보겠습니다.
+
+  ```javascript
+  const fs = require('fs')
+  const path = require('path')
+
+  const filePath = path.resolve(__dirname, './readme2.txt')
+
+  console.log('시작')
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      throw err
+    }
+    console.log('1번', data.toString())
+  })
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      throw err
+    }
+    console.log('2번', data.toString())
+  })
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      throw err
+    }
+    console.log('3번', data.toString())
+  })
+
+  console.log('끝')
+
+  // 처리결과
+  시작
+  끝
+  1번 저를 여러 번 읽어보세요.
+  2번 저를 여러 번 읽어보세요.
+  3번 저를 여러 번 읽어보세요.
+  ```
+
+  - 비동기 메서드들은 백그라운드에 해당 파일을 읽으라고만 요청하고 다음 작업으로 넘어갑니다.
+  - 파일 읽기 요청만 세 번을 보내고 끝을 찍습니다. 나중에 읽기가 완료되면 백그라운드가 다시 메인 스레드에 알립니다.
+  - 메인 스레드는 그제서야 등록된 콜백 함수를 실행합니다.
+
+- 수백 개의 I/O 요청이 들어와도 메인 스레드는 백그라운드에 요청 처리를 위임합니다.
+- 나중에 백그라운드가 각각의 요청 처리가 완료되었다고 알리면 그때 콜백 함수를 처리하면 됩니다.
+
+- 동기와 비동기, 블로킹과 논 블로킹
+
+  - 동기와 비동기
+    - 백그라운드 작업 완료 확인 여부
+  - 블로킹과 논 블로킹
+    - 함수가 바로 return 되는지 여부
+  - 노드에서는 `동기-블로킹` 방식과 `비동기-논 블로킹` 방식이 대부분입니다. 동기-논 블로킹이나 비동기-블로킹 방식은 없다고 봐도 된다.
+    - 동기-블로킹 방식
+      - 백그라운드 작업 완료 여부를 계속 확인하며, 호출한 함수가 바로 return 되지 않고 백그라운드 작업이 끝나야 return됩니다.
+    - 비동기-논 블로킹 방식
+      - 호출한 함수가 바로 return 되어 다음 작업으로 넘어가며, 백그라운드 작업 완료 여부는 신경 쓰지 않고 나중에 백그라운드가 알림을 줄 때 처리합니다.
+
+- 순서대로 파일 여러번 읽기
+
+  ```javascript
+  const fs = require('fs')
+  const path = require('path')
+
+  const filePath = path.resolve(__dirname, './readme2.txt')
+
+  console.log('시작')
+  let data = fs.readFileSync(filePath)
+  console.log('1번', data.toString())
+  data = fs.readFileSync(filePath)
+  console.log('2번', data.toString())
+  data = fs.readFileSync(filePath)
+  console.log('3번', data.toString())
+  console.log('끝')
+  // 처리결과
+  시작
+  1번 저를 여러 번 읽어보세요.
+  2번 저를 여러 번 읽어보세요.
+  3번 저를 여러 번 읽어보세요.
+  끝
+  ```
+
+  - readFileSync 메서드를 사용하면 요청이 수백 개 이상 들어올 때 성능에 문제가 생깁니다.
+  - Sync 메서드는 이전 작업이 완료되어야 다음 작업을 진행할 수 있습니다.
+  - 즉, 백그라운드가 작업하는 동안 메인 스레드는 아무것도 하지 못하고 대기하고 있어야 합니다.
+  - 메인 스레드가 일을 하지 않고 노는 시간이 생기므로 비효율적입니다.
+
+- 비동기 방식으로 하되 순서를 유지
+
+  ```javascript
+  const fs = require('fs')
+  const path = require('path')
+
+  const filePath = path.resolve(__dirname, './readme2.txt')
+
+  console.log('시작')
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      throw err
+    }
+    console.log('1번', data.toString())
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        throw err
+      }
+      console.log('2번', data.toString())
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          throw err
+        }
+        console.log('3번', data.toString())
+        console.log('끝')
+      })
+    })
+  })
+  // 처리결과
+  시작
+  1번 저를 여러 번 읽어보세요.
+  2번 저를 여러 번 읽어보세요.
+  3번 저를 여러 번 읽어보세요.
+  끝
+  ```
+
+- 콜백방식을 프로미스 방식으로 변경
+
+  ```javascript
+  const fs = require('fs')
+  const path = require('path')
+  const filePath = path.resolve(__dirname, './readme2.txt')
+
+  async function main() {
+    console.log('시작')
+    try {
+      let data = await fs.promises.readFile(filePath)
+      console.log('1번', data.toString())
+      data = await fs.promises.readFile(filePath)
+      console.log('2번', data.toString())
+      data = await fs.promises.readFile(filePath)
+      console.log('3번', data.toString())
+      console.log('끝')
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  main()
+  // 처리결과
+  시작
+  1번 저를 여러 번 읽어보세요.
+  2번 저를 여러 번 읽어보세요.
+  3번 저를 여러 번 읽어보세요.
+  끝
+  ```
+
+### ➕ 3.6.2 버퍼와 스트림 이해하기
+
+- 파일을 읽거나 쓰는 두 가지 방식
+
+  - 버퍼를 이용하는 방식
+    - 버퍼링 : 영상을 재생할 수 있을 때까지 데이터를 모으는 동작
+  - 스트림을 이용하는 방식
+    - 스트리밍 : 방송인의 컴퓨터에서 시청자의 컴퓨터로 영상 데이터를 조금씩 전송하는 동작
+
+- 노드의 버퍼와 스트림
+
+  - 버퍼
+
+    - 노드는 파일을 읽을 때 메모리에 파일 크기만큼 공간을 마련해두며 파일 데이터를 메모리에 저장한 뒤 사용자가 조작할 수 있도록 합니다.
+    - 이때, 메모리에 저장된 데이터가 바로 버퍼입니다.
+
+      ```javascript
+      const buffer = Buffer.from('저를 버퍼로 바꿔보세요.')
+      console.log('from(): ', buffer)
+      console.log('length: ', buffer.length)
+      console.log('toString(): ', buffer.toString())
+
+      const array = [
+        Buffer.from('띄엄 '),
+        Buffer.from('띄엄 '),
+        Buffer.from('띄어쓰기'),
+      ]
+
+      const buffer2 = Buffer.concat(array)
+      console.log('concat(): ', buffer2.toString())
+
+      const buffer3 = Buffer.alloc(5)
+      console.log('alloc(): ', buffer3)
+      ```
+
+      - from(문자열) : 문자열을 버퍼로 바꿀 수 있습니다. length 속성은 버퍼의 크기를 나타냅니다. 바이트 단위입니다.
+      - toString(버퍼) : 버퍼를 다시 문자열로 바꿀 수 있습니다. 이때 base64나 hex를 인수로 넣으면 해당 인코딩으로도 변환 가능합니다.
+      - concat(배열) : 배열 안에 든 버퍼들을 하나로 합칩니다.
+      - alloc(바이트) : 빈 버퍼를 생성합니다. 바이트를 인수로 넣으면 해당 크기의 버퍼가 생성됩니다.
+
+  - 스트림
+
+    - 버퍼가 편리하기는 하지만 문제점도 있습니다. 용량이 100MB 인 파일이 있으면 읽을 때 메모리에 100MB인 버퍼를 만들어야 합니다.
+    - 그래서 버퍼의 크기를 작게 만든 후 여러 번으로 나눠 보내는 방식이 등장했습니다.
+    - 예를 들어, 버퍼 1MB를 만든 후 100MB 파일을 100번에 걸쳐서 나눠 보내는 것입니다.
+    - 이를 편리하게 만든 것이 스트림입니다.
+
+      ```javascript
+      const fs = require('fs')
+      const path = require('path')
+
+      const filePath = path.resolve(__dirname, './readme3.txt')
+
+      const readStream = fs.createReadStream(filePath, { highWaterMark: 16 })
+      const data = []
+
+      readStream.on('data', (chunk) => {
+        data.push(chunk)
+        console.log('data : ', chunk, chunk.length)
+      })
+
+      readStream.on('end', () => {
+        console.log('end : ', Buffer.concat(data).toString())
+      })
+
+      readStream.on('error', (err) => {
+        console.error(err)
+      })
+      ```
+
+      - createReadStream 으로 읽기 스트림을 만듭니다.
+      - 두번째 인수는 옵션 객체인데, highWaterMark 라는 옵션이 버퍼의 크기(바이트 단위)를 정할 수 있습니다. 기본값은 64KB 입니다.
+      - readStream 은 이벤트 리스너를 붙여서 사용합니다.
+        - 보통 data, end, error 이벤트를 사용합니다.
+
+    - 파일쓰기
+
+      ```javascript
+      const fs = require('fs')
+      const path = require('path')
+
+      const filePath = path.resolve(__dirname, './writeme2.txt')
+
+      const writeStream = fs.createWriteStream(filePath)
+      writeStream.on('finish', () => {
+        console.log('파일 쓰기 완료')
+      })
+
+      writeStream.write('이 글을 씁니다.\n')
+      writeStream.write('한 번 더 씁니다.')
+      writeStream.end()
+      ```
+
+      - write 메서드로 넣을 데이터를 씁니다. 여러 번 호출할 수 있습니다.
+      - 데이터를 다 쓴 후 end 메서드로 종료를 알립니다. 이 때 finish 이벤트가 발생합니다.
+
+    - 파일을 읽고 그 스트림을 전달받아 파일을 쓸 수도 있습니다.
+    - 스트림끼리 연결하는 것을 '파이핑한다'고 표현합니다.
+
+      ```javascript
+      const fs = require('fs')
+      const path = require('path')
+
+      const readFilePath = path.resolve(__dirname, './readme4.txt')
+      const writeFilePath = path.resolve(__dirname, './writeme3.txt')
+
+      const readStream = fs.createReadStream(readFilePath)
+      const writeStream = fs.createWriteStream(writeFilePath)
+      readStream.pipe(writeStream)
+      ```
+
 ## 📌 3.7 이벤트 이해하기
 
 ## 📌 3.8 예외 처리하기
