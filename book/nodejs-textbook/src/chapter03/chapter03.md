@@ -270,7 +270,7 @@ console.log(__dirname) // /Users/haeny/dev/workspace/TIL/book/nodejs-textbook/sr
     whatIsThis()
     ```
 
-    - 최상위 스코프에 존재하는 this 는 module.exports(또는 exports 객체)를 가리킵니다.
+    - 최상위 스코프에 존재하는 this 는 module.exports(또는 expo rts 객체)를 가리킵니다.
     - 함수 선언문 내부의 this는 global 객체를 가리킵니다.
 
 - **require**
@@ -1211,10 +1211,14 @@ process.stderr.on('data', (data) => {
       console.log('alloc(): ', buffer3)
       ```
 
-      - from(문자열) : 문자열을 버퍼로 바꿀 수 있습니다. length 속성은 버퍼의 크기를 나타냅니다. 바이트 단위입니다.
-      - toString(버퍼) : 버퍼를 다시 문자열로 바꿀 수 있습니다. 이때 base64나 hex를 인수로 넣으면 해당 인코딩으로도 변환 가능합니다.
-      - concat(배열) : 배열 안에 든 버퍼들을 하나로 합칩니다.
-      - alloc(바이트) : 빈 버퍼를 생성합니다. 바이트를 인수로 넣으면 해당 크기의 버퍼가 생성됩니다.
+      - from(문자열)
+        - 문자열을 버퍼로 바꿀 수 있습니다. length 속성은 버퍼의 크기를 나타냅니다. 바이트 단위입니다.
+      - toString(버퍼)
+        - 버퍼를 다시 문자열로 바꿀 수 있습니다. 이때 base64나 hex를 인수로 넣으면 해당 인코딩으로도 변환 가능합니다.
+      - concat(배열)
+        - 배열 안에 든 버퍼들을 하나로 합칩니다.
+      - alloc(바이트)
+        - 빈 버퍼를 생성합니다. 바이트를 인수로 넣으면 해당 크기의 버퍼가 생성됩니다.
 
   - 스트림
 
@@ -1286,6 +1290,124 @@ process.stderr.on('data', (data) => {
       const writeStream = fs.createWriteStream(writeFilePath)
       readStream.pipe(writeStream)
       ```
+
+    - pipe는 여러 번 연결할 수 있습니다.
+
+      ```javascript
+      const zlib = require('zlib')
+      const fs = require('fs')
+      const path = require('path')
+
+      const readFilePath = path.resolve(__dirname, './readme4.txt')
+      const writeFilePath = path.resolve(__dirname, './readme4.txt.gz')
+
+      const readStream = fs.createReadStream(readFilePath)
+      const zlibStream = zlib.createGzip()
+      const writeStream = fs.createWriteStream(writeFilePath)
+      readStream.pipe(zlibStream).pipe(writeStream)
+      ```
+
+### ➕ 3.6.3 기타 fs 메서드 알아보기
+
+```javascript
+const fs = require('fs').promises
+const constants = require('fs').constants
+const path = require('path')
+
+const dirPath = path.resolve(__dirname, './folder')
+const filePath = path.resolve(dirPath, './file.js')
+const newFilePath = path.resolve(dirPath, './newfile.js')
+
+fs.access(dirPath, constants.F_OK | constants.W_OK | constants.R_OK)
+  .then(() => Promise.reject('이미 폴더 있음'))
+  .catch((err) => {
+    if (err.code === 'ENOENT') {
+      console.log('폴더 없음')
+      return fs.mkdir(dirPath)
+    }
+    return Promise.reject(err)
+  })
+  .then(() => {
+    console.log('폴더 만들기 성공')
+    return fs.open(filePath, 'w')
+  })
+  .then((fd) => {
+    console.log('빈 파일 만들기 성공', fd)
+    return fs.rename(filePath, newFilePath)
+  })
+  .then(() => {
+    console.log('이름 바꾸기 성공')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+```
+
+- fs.access(경로, 옵션, 콜백)
+  - 폴더나 파일에 접근할 수 있는지를 체크합니다.
+  - 두 번째 인수로 들어가는 상수는 F_OK는 파일 존재 여부, R_OK는 읽기 권한 여부, W_OK는 쓰기 권한 여부를 체크합니다.
+  - 파일/폴더나 권한이 없다면 에러가 발생하는데 파일/폴더가 없을 때의 에러 코드는 ENOENT 입니다.
+- fs.mkdir(경로, 콜백)
+  - 폴더를 만드는 메서드 입니다.
+  - 이미 폴더가 잇다면 에러가 발생하므로 먼저 access 메서드로 확인해야 됩니다.
+- fs.open(경로, 옵션, 콜백)
+  - FileHandle 객체를 가져오는 메서드입니다.
+  - 파일이 없다면 파일을 생성한 뒤 FileHandle 객체를 가져옵니다.
+  - 옵션으로 쓰려면 w, 읽으려면 r, 기존 파일에 추가하려면 a 입니다.
+- fs.rename(기존 경로, 새 경로, 콜백)
+  - 파일의 이름을 바꾸는 메서드입니다.
+
+```javascript
+const fs = require('fs').promises
+const path = require('path')
+
+const dirname = path.resolve(__dirname, './folder')
+const filename = path.resolve(dirname, './newfile.js')
+
+fs.readdir(dirname)
+  .then((dir) => {
+    console.log('폴더 내용 확인', dir)
+    return fs.unlink(filename)
+  })
+  .then(() => {
+    console.log('파일 삭제 성공')
+    return fs.rmdir(dirname)
+  })
+  .then(() => {
+    console.log('폴더 삭제 성공')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+```
+
+- fs.readdir(경로, 콜백) : 폴더 안의 내용물을 확인할 수 있습니다.
+- fs.unlink(경로, 콜백) : 파일을 지울 수 있습니다. 파일이 없다면 에러가 발생하므로 먼저 파일이 있는지 확인해야 합니다.
+- fs.rmdir(경로, 콜백) : 폴더를 지울 수 있습니다. 폴더 안에 파일들이 있다면 에러가 발생하므로 먼저 내부 파일을 지우고 호출해야 합니다.
+
+```javascript
+const fs = require('fs').promises
+const path = require('path')
+
+const readFilename = path.resolve(__dirname, './readme4.txt')
+const writeFilename = path.resolve(__dirname, './writeme4.txt')
+
+fs.copyFile(readFilename, writeFilename)
+  .then(() => {
+    console.log('복사 완료')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+```
+
+```javascript
+const fs = require('fs')
+
+fs.watch(`${__dirname}/target.txt`, (eventType, filename) => {
+  console.log(eventType, filename)
+})
+```
 
 ## 📌 3.7 이벤트 이해하기
 
