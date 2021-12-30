@@ -1534,3 +1534,162 @@ fs.watch(`${__dirname}/target.txt`, (eventType, filename) => {
     - 현재 리스너가 몇 개 연결되어 있는지 확인합니다.
 
 ## 📌 3.8 예외 처리하기
+
+- 예외란 보통 처리하지 못한 에러를 가리킵니다. 이러한 예외들은 실행 중인 노드 프로세스를 멈추게 만듭니다.
+- 멀티 스레드 프로그램에서는 스레드 하나가 멈추면 그 일을 다른 스레드가 대신합니다.
+- 노드의 메인 스레드는 하나뿐이므로 그 하나를 소중히 보호해야 합니다.
+
+  ```javascript
+  setInterval(() => {
+    console.log('시작')
+    try {
+      throw new Error('서버를 고장내주마')
+    } catch (err) {
+      console.log(err)
+    }
+  }, 1000)
+
+  // 처리결과
+  시작
+  Error: 서버를 고장내주마
+      at Timeout._onTimeout (/Users/haeny/dev/workspace/TIL/book/nodejs-textbook/src/chapter03/ch03-8/error1.js:4:11)
+      at listOnTimeout (node:internal/timers:557:17)
+      at processTimers (node:internal/timers:500:7)
+  시작
+  Error: 서버를 고장내주마
+      at Timeout._onTimeout (/Users/haeny/dev/workspace/TIL/book/nodejs-textbook/src/chapter03/ch03-8/error1.js:4:11)
+      at listOnTimeout (node:internal/timers:557:17)
+      at processTimers (node:internal/timers:500:7)
+  //...계속
+  ```
+
+  - throw 를 하면 노드 프로세스가 멈춰버립니다.
+  - 에러는 발생하지만 try/catch 로 잡을 수 있고 setInterval도 직접 멈추기 전까지 계속 실행됩니다.
+
+- 노드 자체에서 잡아주는 에러
+
+  ```javascript
+  const fs = require('fs')
+
+  setInterval(() => {
+    fs.unlink('./abdsad.js', (err) => {
+      if (err) {
+        console.error(err)
+      }
+    })
+  }, 1000)
+
+  // 처리결과
+  [Error: ENOENT: no such file or directory, unlink './abdsad.js'] {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'unlink',
+    path: './abdsad.js'
+  }
+  [Error: ENOENT: no such file or directory, unlink './abdsad.js'] {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'unlink',
+    path: './abdsad.js'
+  }
+  // ...계속
+  ```
+
+  - 에러가 발생하지만 다행히 노드 내장 모듈의 에러는 실행 중인 프로세스를 멈추지 않습니다.
+  - 에러 로그를 기록해두고 나중에 원인을 찾아 수정하면 됩니다.
+
+- 프로미스의 에러
+
+  ```javascript
+  const fs = require('fs')
+
+  setInterval(() => {
+    fs.promises.unlink('./dsadsad.js')
+  }, 1000)
+
+  // 처리결과
+  node:internal/process/promises:246
+          triggerUncaughtException(err, true /* fromPromise */);
+          ^
+
+  [Error: ENOENT: no such file or directory, unlink './dsadsad.js'] {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'unlink',
+    path: './dsadsad.js'
+  }
+  ```
+
+  - 프로미스에서 에러가 발생하는 경우 프로세스가 멈춥니다.
+  - 그러므로 항상 catch를 붙여줘서 에러를 처리할 수 있도록 해야 합니다.
+
+- 예측이 불가능한 에러 처리
+
+  ```javascript
+  process.on('uncaughtException', (err) => {
+    console.log('예기치 못한 에러', err)
+  })
+
+  setInterval(() => {
+    throw new Error('서버를 고장내주마')
+  }, 1000)
+
+  setTimeout(() => {
+    console.log('실행됩니다.')
+  }, 2000)
+
+  // 처리결과
+  예기치 못한 에러 Error: 서버를 고장내주마
+      at Timeout._onTimeout (/Users/haeny/dev/workspace/TIL/book/nodejs-textbook/src/chapter03/ch03-8/error4.js:6:9)
+      at listOnTimeout (node:internal/timers:557:17)
+      at processTimers (node:internal/timers:500:7)
+  실행됩니다.
+  예기치 못한 에러 Error: 서버를 고장내주마
+      at Timeout._onTimeout (/Users/haeny/dev/workspace/TIL/book/nodejs-textbook/src/chapter03/ch03-8/error4.js:6:9)
+      at listOnTimeout (node:internal/timers:557:17)
+      at processTimers (node:internal/timers:500:7)
+  // ...계속
+  ```
+
+  - setInterval 에서 에러가 발생하였지만, process 객체에 uncaughtException 이벤트 리스너를 달아주었습니다.
+  - 처리하지 못한 에러를 이벤트 리스너가 실행되고 프로세스가 유지됩니다.
+  - uncaughtException 이벤트 리스너로 모든 에러를 처리할 수 있을 것처럼 보입니다.
+  - 실제로 uncaughtException의 콜백 함수에 에러 발생 시 복구 작업을 하는 코드를 넣어둔 사람도 있습니다.
+  - 노드 공식 문서에서는 uncaughtException 이벤트를 최후의 수단으로 사용할 것을 명시하고 있습니다.
+  - 노드는 uncaughtException 이벤트 발생 후 다음 동작이 제대로 동작하는지 보증하지 않습니다.
+  - 즉, 복구 작업 코드를 넣어 두었더라도 그것이 동작하는지 확신할 수 없습니다.
+  - 따라서, uncaughtException은 단순히 에러 내용을 기록하는 정도로 사용하고, 에러를 기록한 후 process.exit()으로 프로세스를 종료하는 것이 좋습니다.
+
+### ➕ 3.8.1 자주 발생하는 에러들
+
+- `node: command not found`
+  - 노드를 설치했지만 이 에러가 발생하는 경우는 환경 변수가 제대로 설정되지 않은 것입니다.
+  - node 외의 다른 명령어도 마찬가지입니다. 그 명령어를 수행할 수 있는 파일이 환경 변수에 들어 있어야 명령어를 콘솔에서 사용할 수 있습니다.
+- `ReferenceError: {모듈명} is not defined`
+  - 모듈을 require 했는지 확인합니다.
+- `Error: Cannot find module {모듈명}`
+  - 해당 모듈을 require 했지만 설치하지 않았습니다.
+- `Error: Can't set headers after they are sent`
+  - 요청에 대한 응답을 보낼 때 응답을 두 번 이상 보냈습니다.
+  - 요청에 대항 응답은 한 번만 보내야 합니다.
+- `FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory`
+  - 코드를 실행할 때 메모리가 부족하여 스크립트가 정상 동작하지 않은 경우입니다.
+  - 코드가 잘못되었을 확률이 높으므로 코드를 점검해보세요.
+  - 만약 코드가 정상이지만 노드가 활용할 수 있는 메모리가 부족한 경우라면 노드의 메모리를 늘릴 수 있습니다.
+    - 노드를 실행할 때 node --max-old-space-size=4096 파일명과 같은 명령어를 사용하면 됩니다.
+- `UnhandledPromiseRejectionWarning: Unhandled promise rejection`
+  - 프로미스 사용 시 catch 메서드를 붙이지 않으면 발생합니다.
+- `EADDRINUSE {포트 번호}`
+  - 해당 포트 번호에 이미 다른 프로세스가 연결되어 있습니다.
+- `EACCES 또는 EPERM`
+  - 노드가 작업을 수행하는 데 권한이 충분하지 않습니다.
+- `EJSONPARSE`
+  - package.json 등의 JSON 파일에 문법 오류가 있을 때 발생합니다.
+- `ECONNREFUSED`
+  - 요청을 보냈으나 연결이 성립하지 않을 때 발생합니다.
+- `ETARGET`
+  - package.json에 기록한 패키지 버전이 존재하지 않을 때 발생합니다.
+- `ETIMEOUT`
+  - 요청을 보냈으나 응답이 일정 시간 내에 오지 않을 때 발생합니다.
+- `ENOENT: no such file or directory`
+  - 지정한 폴더나 파일이 존재하지 않는 경우입니다.
