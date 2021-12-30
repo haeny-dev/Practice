@@ -1409,6 +1409,59 @@ fs.watch(`${__dirname}/target.txt`, (eventType, filename) => {
 })
 ```
 
+### ➕ 3.6.4 스레드풀 알아보기
+
+- fs 비동기 메서드들은 백그라운드에서 실행되고, 실행된 후에 다시 메인 스레드의 콜백 함수나 프로미스의 then 부분이 실행됩니다.
+- 이때 fs 메서드를 여러 번 실행해도 백그라운드에서 동시에 처리되는데, 바로 스레드풀이 있기 때문입니다.
+- fs 외에도 내부적으로 스레드풀을 사용하는 모듈로는 crypto, zlib, dns, lookup 등이 있습니다.
+
+  ```javascript
+  const crypto = require('crypto')
+
+  const pass = 'pass'
+  const salt = 'salt'
+  const start = Date.now()
+
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('1 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('2 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('3 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('4 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('5 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('6 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('7 : ', Date.now() - start)
+  })
+  crypto.pbkdf2(pass, salt, 1000000, 128, 'sha512', () => {
+    console.log('8 : ', Date.now() - start)
+  })
+  // 처리 결과
+  3 :  1067
+  4 :  1077
+  1 :  1077
+  2 :  1077
+  5 :  2136
+  7 :  2142
+  8 :  2146
+  6 :  2148
+  ```
+
+  - 실행할 때마다 시간과 순서가 달라집니다. 스레드풀이 작업을 동시에 처리하므로 여덟 개의 작업 중에서 어느 것이 먼저 처리될지 모릅니다.
+  - 1~4와 5~8이 그룹으로 묶여져 있고, 5~8이 1~4보다 시간이 더 소요됩니다.
+  - 기본적인 스레드풀의 개수가 네 개이기 때문입니다. 스레드풀을 직접 컨트롤할 수는 없지만 개수를 조절할 수 있습니다.
+  - `UV_THREADPOOL_SIZE` 라는 환경변수를 통해서 조절이 가능합니다.
+
 ## 📌 3.7 이벤트 이해하기
 
 ## 📌 3.8 예외 처리하기
