@@ -1,4 +1,4 @@
-package kr.co.programmers.kotlin.basic_syntax
+package basic_syntax
 
 /* Program entry point */
 fun main(args: Array<String>){
