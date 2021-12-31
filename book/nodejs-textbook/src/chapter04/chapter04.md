@@ -199,6 +199,170 @@
 
 ## 📌 4.3 쿠키와 세션 이해하기
 
+- 서버는 요청에 대한 응답을 할 때 쿠키라는 것을 같이 보냅니다.?
+- 쿠키는 유효 기간이 있으며 단순한 키-값 형태입니다.
+- 서버로부터 쿠기가 오면 웹 브라우저는 쿠키를 저장해두었다가 다음에 요청할 때마다 쿠키를 동봉해서 보냅니다.?
+
+  ```javascript
+  const http = require('http')
+
+  const PORT = 4000
+
+  const server = http.createServer((req, res) => {
+    console.log(req.url, req.headers.cookie)
+    res.writeHead(200, { 'Set-Cookie': 'mycookie=test' })
+    res.end('Hello Cookie')
+  })
+
+  server.listen(PORT, () => {
+    console.log(`${PORT}번 포트에서 서버 대기 중입니다.`)
+  })
+
+  // 호출 결과
+  HTTP/1.1 200 OK
+  Connection: keep-alive
+  Date: Fri, 31 Dec 2021 11:52:10 GMT
+  Keep-Alive: timeout=5
+  Set-Cookie: mycookie=test
+  Transfer-Encoding: chunked
+
+  Hello Cookie
+  ```
+
+  - 쿠키는 name=zerocho;year=1994 처럼 문자열 형식으로 존재합니다. 쿠키 간에는 세미콜론으로 구분됩니다.
+
+  ```javascript
+  const http = require('http')
+  const fs = require('fs')
+  const url = require('url')
+  const qs = require('querystring')
+
+  const PORT = 4000
+
+  const parseCookies = (cookie = '') =>
+    cookie
+      .split(';')
+      .map((v) => v.split('='))
+      .reduce((acc, [k, v]) => {
+        acc[k.trim()] = decodeURIComponent(v)
+        return acc
+      }, {})
+
+  const server = http.createServer(async (req, res) => {
+    const cookies = parseCookies(req.headers.cookie)
+
+    // 주소가 /login 으로 시작하는 경우
+    if (req.url.startsWith('/login')) {
+      const { query } = url.parse(req.url)
+      const { name } = qs.parse(query)
+
+      // 쿠키 유효 시간을 현재 시간 + 5분으로 설정
+      const expires = new Date()
+      expires.setMinutes(expires.getMinutes() + 5)
+      res.writeHead(302, {
+        Location: '/',
+        'Set-Cookie': `name=${encodeURIComponent(
+          name
+        )}; Expires=${expires.toGMTString()}; HttpOnly; Path=/`,
+      })
+      res.end()
+    } else if (cookies.name) {
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+      res.end(`${cookies.name}님 안녕하세요.`)
+    } else {
+      try {
+        const data = await fs.promises.readFile(`${__dirname}/cookie2.html`)
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.end(data)
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' })
+        res.end(err.message)
+      }
+    }
+  })
+
+  server.listen(PORT, () => {
+    console.log(`${PORT}번 포트에서 서버 대기 중입니다.`)
+  })
+  ```
+
+  - Set-Cookie 로 쿠키를 설정할 때 만료 시간(Expires)과 HttpOnly, Path 같은 옵션을 부여했습니다.
+  - 쿠키를 설정할 때는 각종 옵션을 넣을 수 있으며, 옵션 사이에 세미콜론을 써서 구분하면 됩니다.
+    - 쿠키명=쿠키값 : 기본적인 쿠키의 값입니다.
+    - Expires=날짜 : 만료 기한입니다. 이 기한이 지나면 쿠키가 제거됩니다. 기본값은 클라이언트가 종료될 때까지입니다.
+    - Max-age=초 : Expires와 비슷하지만 날짜 대신 초를 입력할 수 있습니다. 해당 초가 지나면 쿠키가 제거됩니다. Expires보다 우선합니다.
+    - Domain=도메인명 : 쿠키가 전송될 도메인을 특정할 수 있습니다. 기본값은 현재 도메인입니다.
+    - Path=URL : 쿠키가 전송될 URL을 특정할 수 있습니다. 기본값은 '/' 이고, 이 경우 모든 URL에서 쿠키를 전송할 수 있습니다.
+    - Secure : HTTPS일 경우에만 쿠키가 전송됩니다.
+    - HttpOnly : 설정 시 자바스크립트에서 쿠키에 접근할 수 없습니다. 쿠키 조작을 방지하기 위해 설정하는 것이 좋습니다.
+  - 쿠키에는 들어가면 안 되는 글자들이 있는데, 대표적으로 한글과 줄바꿈이 있습니다. 한글은 encodeURIComponent로 감싸서 넣습니다.
+
+- 서버가 사용자 정보를 관리하도록 만듭니다.
+
+  ```javascript
+  const http = require('http')
+  const fs = require('fs')
+  const url = require('url')
+  const qs = require('querystring')
+
+  const parseCookies = (cookie = '') =>
+    cookie
+      .split(';')
+      .map((v) => v.split('='))
+      .reduce((acc, [k, v]) => {
+        acc[k.trim()] = decodeURIComponent(v)
+        return acc
+      }, {})
+
+  const PORT = 4000
+  const session = {}
+
+  const server = http.createServer(async (req, res) => {
+    const cookies = parseCookies(req.headers.cookie)
+    if (req.url.startsWith('/login')) {
+      const { query } = url.parse(req.url)
+      const { name } = qs.parse(query)
+      const expires = new Date()
+      expires.setMinutes(expires.getMinutes() + 5)
+      const uniqueInt = Date.now()
+      session[uniqueInt] = {
+        name,
+        expires,
+      }
+      res.writeHead(302, {
+        Location: '/',
+        'Set-Cookie': `session=${uniqueInt}; Expires=${expires.toGMTString()}; HttpOnly; Path=/`,
+      })
+      res.end()
+    } else if (
+      cookies.session &&
+      session[cookies.session].expires > new Date()
+    ) {
+      // 세션 쿠키가 존재하고, 만료 기간이 지나지 않았다면
+      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
+      res.end(`${session[cookies.session].name}님 안녕하세요`)
+    } else {
+      try {
+        const data = await fs.promises.readFile(`${__dirname}/cookie2.html`)
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.end(data)
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' })
+        res.end(err.message)
+      }
+    }
+  })
+
+  server.listen(PORT, () => {
+    console.log(`${PORT}번 포트에서 서버 대기 중입니다.`)
+  })
+  ```
+
+  - 서버에 사용자 정보를 저장하고 클라이언트와는 세션 아이디로만 소통합니다.
+  - 세션 아이디는 꼭 쿠키를 사용해서 주고받지 않아도 됩니다. 하지만 많은 웹 사이트가 쿠키를 사용합니다.
+  - 세션을 위해 사용하는 쿠키를 세션 쿠키라고 부릅니다.
+  - 실제 배포용 서버에서는 세션을 위와 같이 변수에 저장하지 않습니다. 보통은 레디스(Redis)나 멤캐시드(Memcached) 같은 데이터베이스에 넣어둡니다.
+
 ## 📌 4.4 https와 http2
 
 ## 📌 4.5 cluster
