@@ -365,4 +365,64 @@
 
 ## 📌 4.4 https와 http2
 
+- https 모듈은 웹 서버에 SSL 암호화를 추가합니다.
+- GET 이나 POST 요청을 할 때 오가는 데이터를 암호화해서 중간에 다른 사람이 요청을 가로채더라도 내용을 확인할 수 없게 합니다.
+- https 는 아무나 사용할 수 있는 것이 아닙니다. 암호화를 적용하는 만큼, 그것을 인증해줄 수 있는 기관도 필요합니다.
+- 인증서는 인증 기관에서 구입해야 하며, Let's Encrypt 같은 기관에서 무료로 발급해주기도 합니다.
+
+  ```javascript
+  // 인증서가 있다면...
+  const https = require('https')
+  const fs = require('fs')
+
+  const server = https.createServer(
+    {
+      cert: fs.readFileSync('도메인 인증서 경로'),
+      key: fs.readFileSync('도메인 비밀키 경로'),
+      ca: [
+        fs.readFileSync('상위 인증서 경로'),
+        fs.readFileSync('상위 인증서 경로'),
+      ],
+    },
+    (req, res) => {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+      res.write('<h1>Hello Node!</h1>')
+      res.end('<p>Hello Server!</p>')
+    }
+  )
+
+  server.listen(443, () => {
+    console.log('443번 포트에서 서버 대기 중입니다.')
+  })
+  ```
+
+- 노드의 http2 모듈은 SSL 암호화와 더불어 최신 HTTP 프로토콜인 http/2 를 사용할 수 있게 합니다.
+- http/2 는 요청 및 응답 방식이 기존 http/1.1 보다 개선되어 훨씬 효율적으로 요청을 보냅니다.
+- http/2 를 사용하면 웹의 속도도 많이 개선됩니다.
+
+  ```javascript
+  const http2 = require('http2')
+  const fs = require('fs')
+
+  http2
+    .createSecureServer(
+      {
+        cert: fs.readFileSync('도메인 인증서 경로'),
+        key: fs.readFileSync('도메인 비밀키 경로'),
+        ca: [
+          fs.readFileSync('상위 인증서 경로'),
+          fs.readFileSync('상위 인증서 경로'),
+        ],
+      },
+      (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+        res.write('<h1>Hello Node!</h1>')
+        res.end('<p>Hello Server!</p>')
+      }
+    )
+    .listen(443, () => {
+      console.log('443번 포트에서 서버 대기 중입니다.')
+    })
+  ```
+
 ## 📌 4.5 cluster
