@@ -607,3 +607,553 @@ app.use((req, res, next) => {
     - res.status(코드) : 응답 시의 HTTP 상태 코드를 지정한다.
 
 ## 📌 6.5 템플릿 엔진 사용하기
+
+- 템플릿 엔진은 자바스크립트를 사용해서 HTML을 렌더링할 수 있게 한다.
+- 기존 HTML과는 문법이 살짝 다를 수 있고, 자바스크립트 문법이 들어 있기도 한다.
+
+### ➕ 6.5.1 퍼그(제이드)
+
+- Express와 연결
+
+  ```javascript
+  ...
+  const app = express()
+  app.set('port', process.env.PORT || 4000)
+  app.set('views', path.resolve(__dirname, './views'))
+  app.set('view engine', 'pug')
+  ...
+  ```
+
+  - views 는 템플릿 파일들이 위치한 폴더를 지정하는 것이다.
+
+    - res.render 메서드가 이 폴더를 기준으로 템플릿 엔진을 찾아서 렌더링한다.
+    - res.render('index') 라면 ./views/index.pug 를 렌더링 한다.
+
+  - view engine 은 어떠한 종류의 템플릿 엔진을 사용할지를 나타낸다.
+
+#### 6.5.1.1 HTML 표현
+
+- HTML
+  ```html
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Express</title>
+      <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+      <div id="login-button"></div>
+      <div class="post-image"></div>
+      <span id="highlight"></span>
+      <p class="hidden full"></p>
+      <p>Welcome to Express</p>
+      <button type="submit">전송</button>
+      <p>
+        안녕하세요. 여러 줄을 입력합니다.
+        <br />
+        태그도 중간에 넣을 수 있습니다.
+      </p>
+      <style>
+        h1 {
+          font-size: 30px;
+        }
+      </style>
+      <script>
+        const message = 'Pug'
+        alert(message)
+      </script>
+    </body>
+  </html>
+  ```
+- Pug
+
+  ```pug
+  doctype html
+  html
+    head
+      title= title
+      link(rel="stylesheet", href="/style.css")
+    body
+      #login-button
+      .post-image
+      span#highlight
+      p.hidden.full
+      p Welcome to Express
+      button(type='submit') 전송
+      p
+        | 안녕하세요.
+        | 여러 줄을 입력합니다.
+        br
+        | 태그도 중간에 넣을 수 있습니다.
+      style.
+        h1{
+          font-size: 30px;
+        }
+      script.
+        const message = 'Pug'
+        alert(message)
+  ```
+
+#### 6.5.1.2 변수
+
+- HTML과 다르게 자바스크립트 변수를 템플릿에 렌더링할 수 있다.
+
+- res.render 호출 시 보내는 변수가 퍼그를 처리한다.
+
+  ```javascript
+  // GET '/'
+  router.get('/', (req, res) => {
+    res.render('pug/index', { title: 'Express' })
+  })
+  ```
+
+  - res.render(템플릿, 변수 객체)
+  - 렌더링 하면서 { title: 'Express' } 객체를 변수로 집어넣으면, index.pug의 title 부분이 모두 Express로 치환된다.
+
+- res.render 메서드에 변수 객체를 넣는 대신, res.locals 객체를 사용해서 변수를 넣을 수도 있다.
+
+  ```javascript
+  router.get('/', (req, res) => {
+    res.locals.title = 'Express'
+    res.render('pub/index')
+  })
+  ```
+
+  - 템플릿 엔진이 res.locals 객체를 읽어서 변수를 집어 넣습니다.
+  - 이 방식의 장점은 현재 라우터뿐만 아니라 다른 미들웨어에서도 res.locals 객체에 접근할 수 있다는 것이다.
+  - 다른 미들웨어에서 템플릿 엔진용 변수를 미리 넣을 수도 있다.
+
+- HTML
+
+  ```html
+  <h1>Express</h1>
+  <p>Welcome to Express</p>
+  <button class="Express" type="submit">전송</button>
+  <input placeholder="Express 연습" />
+  ```
+
+- Pug
+
+  ```text
+  h1= title
+  p Welcome to #{title}
+  button(class=title, type='submit') 전송
+  input(placeholder=title + ' 연습')
+  ```
+
+  - 변수를 텍스트로 사용하고 싶다면 태그 뒤에 =을 붙인 후 변수를 입력
+
+  - 속성에도 =을 붙인 후 변수를 사용할 수 있다.
+  - 텍스트 중간에 변수를 넣으려면 #{변수} 를 사용하면 된다.
+  - #{} 의 내부와 = 기호 뒷부분은 자바스크립트로 해석하므로 input 태그의 경우처럼 자바스크립트 구문을 써도 된다.
+  - 내부에 직접 변수를 선언할 수도 있다.
+
+    - 빼기(-)를 먼저 입력하면 뒤에 자바스크립트 구문을 작성할 수 있다.
+
+      ```javascript
+      // Pug
+      - const node = 'Node.js'
+      - const js = 'Javascript'
+      p #{node}와 #{js}
+      ```
+
+      ```html
+      <!-- HTML -->
+      <p>Node.js와 Javascript</p>
+      ```
+
+  - 퍼그는 기본적으로 변수의 특수 문자를 HTML 엔티티로 이스케이프한다. 원치않는다면 = 대신 != 을 사용하면 된다.
+
+    ```javascript
+    // Pug
+    p = '<strong>이스케이프</strong>'
+    p != '<strong>이스케이프 하지 않음</strong>'
+    ```
+
+    ```html
+    <!-- HTML -->
+    <p>&lt;strong&gt;이스케이프&lt;/strong&gt;</p>
+    <p><strong>이스케이프 하지 않음</strong></p>
+    ```
+
+#### 6.5.1.3 반복문
+
+```javascript
+// Pug
+ul
+  each fruit, index in ['사과', '배', '오렌지', '바나나', '복숭아']
+    li= (index + 1) + '번째 ' + fruit
+```
+
+```html
+<!-- HTML -->
+<ul>
+  <li>1번째 사과</li>
+  <li>2번째 배</li>
+  <li>3번째 오렌지</li>
+  <li>4번째 바나나</li>
+  <li>5번째 복숭아</li>
+</ul>
+```
+
+#### 6.5.1.4 조건문
+
+- if
+
+  ```javascript
+  // Pug
+  if isLoggedIn
+    div 로그인 되었습니다.
+  else
+    div 로그인이 필요합니다.
+  ```
+
+  ```html
+  <!-- isLoggedIn이 true일 때 -->
+  <div>로그인 되었습니다.</div>
+  <!-- isLoggedIn이 false일 때 -->
+  <div>로그인이 필요합니다.</div>
+  ```
+
+- case
+
+  ```javascript
+  case fruit
+    when 'apple'
+      p 사과입니다.
+    when 'banana'
+      p 바나나입니다.
+    when 'orange'
+      p 오렌지입니다.
+    default
+      p 사과도 바나나도 오렌지도 아닙니다.
+  ```
+
+  ```html
+  <!-- fruit이 apple일 때 -->
+  <p>사과입니다.</p>
+  <!-- fruit이 banana일 때 -->
+  <p>바나나입니다.</p>
+  <!-- fruit이 orange일 때 -->
+  <p>오렌지입니다.</p>
+  <!-- 기본값 -->
+  <p>사과도 바나나도 오렌지도 아닙니다.</p>
+  ```
+
+#### 6.5.1.5 include
+
+- 다른 퍼그나 HTML 파일을 넣을 수 있다.
+
+  ```javascript
+  // header.pug
+  header
+    a(href='/') Home
+    a(href='/about') About
+
+  // footer.pug
+  footer
+    div 푸터입니다.
+
+  // main.pug
+  include header
+  main
+    h1 메인 파일
+    p 다른 파일을 include할 수 있습니다.
+  include footer
+  ```
+
+  ```html
+  <header>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+  </header>
+  <main>
+    <h1>메인 파일</h1>
+    <p>다른 파일을 include할 수 있습니다.</p>
+  </main>
+  <footer>
+    <div>푸터입니다.</div>
+  </footer>
+  ```
+
+#### 6.5.1.6 extends 와 block
+
+- 레이아웃을 정할 수 있습니다. 공통되는 레이아웃 부분을 따로 관리할 수 있어 좋습니다.
+
+  ```javascript
+  // layout.pug
+  doctype html
+  html
+    head
+      title= title
+      link(rel='stylesheet', href='/style.css')
+      block style
+    body
+      header 헤더입니다.
+      block content
+      footer 푸터입니다.
+      block script
+
+  // body.pug
+  extends layout
+
+  block content
+    main
+      p 내용입니다.
+
+  block script
+    script(src='/main.js')
+  ```
+
+  ```html
+  <!-- HTML -->
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title>Express</title>
+      <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+      <header>헤더입니다.</header>
+      <main>
+        <p>내용입니다.</p>
+      </main>
+      <footer>푸터입니다.</footer>
+      <script src="/main.js"></script>
+    </body>
+  </html>
+  ```
+
+  - 레이아웃이 될 파일에는 공통된 마크업을 넣되, 페이지마다 달라지는 부분을 block으로 비워둔다.
+  - block 은 여러 개 만들어도 된다. block 은 block [블록명] 으로 선언한다.
+  - block 이 되는 파일에서는 extends 키워드로 레이아웃 파일을 지정하고 block 부분을 넣는다.
+  - block 선언보다 한 단계 더 들여쓰기되어 있어야 한다.
+
+### ➕ 6.5.2 넌적스
+
+- 넌적스는 퍼그의 HTML 문법 변화에 적응하기 힘든 분에게 적합한 템플릿 엔진이다.
+
+- 파이어폭스를 만든 모질라에서 만들었다.
+- HTML 문법을 그대로 사용하되 추가로 자바스크립트 문법을 사용할 수 있다.
+- 파이썬의 템플릿 엔진인 Twig와 문법이 상당히 유사하다.
+
+  ```javascript
+  ...
+  const nunjucks = require('nunjucks')
+
+  ...
+  const app = express()
+  app.set('port', process.env.PORT || 4000)
+  app.set('view engine', 'html')
+
+  nunjucks.configure('views', {
+    express: app,
+    watch: true,
+  })
+  ...
+  ```
+
+  - configure의 첫 번째 인수로 views 폴더의 경로를 넣고, 두 번째 인수로 옵션을 넣는다.
+    - express 옵션에 app 객체를 연결한다.
+    - watch 옵션이 true이면 HTML 파일이 변경될 때 템플릿 엔진을 다시 렌더링한다.
+  - 파일은 html을 그대로 사용해도 된다. 넌적스임을 구분하려면 njk를 쓰면 되는데, 이 때는 view engine도 njk로 바꿔야 한다.
+
+#### 6.5.2.1 변수
+
+```html
+<!-- Nunjucks -->
+<h1>{{title}}</h1>
+<p>Welcome to {{title}}</p>
+<button class="{{title}}" type="submit">전송</button>
+<input placeholder="{{title}} 연습" />
+
+{% set node = 'Node.js' %} {% set js = 'Javascript' %}
+<p>{{node}}와 {{js}}</p>
+
+<p>{{'<strong>이스케이프</strong>'}}</p>
+<p>{{'<strong>이스케이프하지 않음</strong>' | safe}}</p>
+```
+
+```html
+<!-- HTML -->
+<h1>Express</h1>
+<p>Welcome to Express</p>
+<button class="Express" type="submit">전송</button>
+<input placeholder="Express 연습" />
+
+<p>Node.js와 Javascript</p>
+
+<p>&lt;strong&gt;이스케이프&lt;/strong&gt;</p>
+<p><strong>이스케이프 하지 않음</strong></p>
+```
+
+#### 6.5.2.2 반복문
+
+```html
+<!-- Nunjucks -->
+<ul>
+  {% set fruits = ['사과', '배', '오렌지', '바나나', '복숭아'] %} {% for item in
+  fruits %}
+  <li>{{loop.index}}번째 {{item}}</li>
+  {% endfor %}
+</ul>
+```
+
+```html
+<!-- HTML -->
+<ul>
+  <li>1번째 사과</li>
+  <li>2번째 배</li>
+  <li>3번째 오렌지</li>
+  <li>4번째 바나나</li>
+  <li>5번째 복숭아</li>
+</ul>
+```
+
+#### 6.5.2.3 조건문
+
+```html
+<!-- Nunjucks -->
+{% if isLoggedIn %}
+<div>로그인 되었습니다.</div>
+{% else %}
+<div>로그인이 필요합니다.</div>
+{% endif %}
+```
+
+```html
+<!-- isLoggedIn이 true일 때 -->
+<div>로그인 되었습니다.</div>
+<!-- isLoggedIn이 false일 때 -->
+<div>로그인이 필요합니다.</div>
+```
+
+```html
+<!-- Nunjucks -->
+{% if fruit === 'apple' %}
+<p>사과입니다.</p>
+{% elif fruit === 'banana' %}
+<p>바나나입니다.</p>
+{% elif fruit === 'orange' %}
+<p>오렌지입니다.</p>
+{% else %}
+<p>사과도 바나나도 오렌지도 아닙니다.</p>
+{% endif %}
+```
+
+```html
+<!-- fruit이 apple일 때 -->
+<p>사과입니다.</p>
+<!-- fruit이 banana일 때 -->
+<p>바나나입니다.</p>
+<!-- fruit이 orange일 때 -->
+<p>오렌지입니다.</p>
+<!-- 기본값 -->
+<p>사과도 바나나도 오렌지도 아닙니다.</p>
+```
+
+```html
+<!-- Nunjucks -->
+<div>{{ '참' if isLoggedIn }}</div>
+<div>{{ '참' if isLoggedIn else '거짓' }}</div>
+```
+
+```html
+<!-- HTML -->
+<!-- isLoggedIn이 true일 때 -->
+<div>참</div>
+<!-- isLoggedIn이 false일 때 -->
+<div>거짓</div>
+```
+
+#### 6.5.2.4 include
+
+```html
+<!-- Nunjucks -->
+<!-- header.html -->
+<header>
+  <a href="/">Home</a>
+  <a href="/about">About</a>
+</header>
+
+<!-- footer.html -->
+<footer>
+  <div>푸터입니다.</div>
+</footer>
+
+<!-- main.html -->
+{% include "header.html" %}
+<main>
+  <h1>메인 파일</h1>
+  <p>다른 파일을 include할 수 있습니다.</p>
+</main>
+{% include "footer.html" %}
+```
+
+```html
+<!-- HTML -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Express</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>헤더입니다.</header>
+    <main>
+      <p>내용입니다.</p>
+    </main>
+    <footer>푸터입니다.</footer>
+    <script src="/main.js"></script>
+  </body>
+</html>
+```
+
+#### 6.5.2.5 extends와 block
+
+```html
+<!-- Nunjucks -->
+<!-- layout.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/style.css" />
+    {% block style %} {% endblock %}
+  </head>
+  <body>
+    <header>헤더입니다.</header>
+    {% block content %} {% endblock %}
+    <footer>푸터입니다.</footer>
+    {% block script %} {% endblock %}
+  </body>
+</html>
+
+<!-- body.html -->
+{% extends 'layout.html' %} {% block content %}
+<main>
+  <p>내용입니다.</p>
+</main>
+{% endblock %} {% block script %}
+<script src="/main.js"></script>
+{% endblock %}
+```
+
+```html
+<!-- HTML -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Express</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header>헤더입니다.</header>
+    <main>
+      <p>내용입니다.</p>
+    </main>
+    <footer>푸터입니다.</footer>
+    <script src="/main.js"></script>
+  </body>
+</html>
+```

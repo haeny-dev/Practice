@@ -5,6 +5,7 @@ const session = require('express-session')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const nunjucks = require('nunjucks')
 
 try {
   fs.readdirSync(path.resolve(__dirname, './uploads'))
@@ -35,6 +36,14 @@ const userRouter = require('./routes/user')
 
 const app = express()
 app.set('port', process.env.PORT || 4000)
+// app.set('views', path.resolve(__dirname, './views'))
+// app.set('view engine', 'pug')
+app.set('view engine', 'html')
+
+nunjucks.configure(path.resolve(__dirname, './views'), {
+  express: app,
+  watch: true,
+})
 
 app.use(morgan('dev'))
 app.use('/', express.static(path.resolve(__dirname, './public')))
