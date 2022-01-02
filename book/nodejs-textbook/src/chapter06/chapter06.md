@@ -424,6 +424,157 @@ app.use((req, res, next) => {
 
 ## 📌 6.3 Router 객체로 라우팅 분리하기
 
+- http 모듈만을 사용하여 라우터를 만들 때는 요청 메서드와 주소별로 분기 처리를 하느라 코드가 매우 복잡했다.
+- Express 를 사용하는 이유 중 하나는 라우팅을 깔끔하게 관리할 수 있다는 점이다.
+- 라우터를 많이 연결하면 app.js 코드가 길어지므로 Express 에서는 라우터를 분리할 수 있는 방법을 제공한다.
+
+  ```javascript
+  /* ./routes/index.js */
+  const express = require('express')
+
+  const router = express.Router()
+
+  // GET '/'
+  router.get('/', (req, res) => {
+    res.send('Hello, Express')
+  })
+
+  module.exports = router
+  ```
+
+  ```javascript
+  /* ./routes/user.js */
+  const express = require('express')
+
+  const router = express.Router()
+
+  // GET /user
+  router.get('/', (req, res) => {
+    res.send('Hello, User')
+  })
+
+  module.exports = router
+  ```
+
+  ```javascript
+  /* app.js */
+  ...
+  const indexRouter = require('./routes/index')
+  const userRouter = require('./routes/user')
+
+  const app = express()
+  app.set('port', process.env.PORT || 4000)
+
+  app.use(morgan('dev'))
+  app.use('/', express.static(path.resolve(__dirname, './public')))
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: false }))
+  app.use(cookieParser(process.env.COOKIE_SECRET))
+  app.use(
+    session({
+      resave: false,
+      saveUninitialized: false,
+      secret: process.env.COOKIE_SECRET,
+      cookie: {
+        httpOnly: true,
+        secure: false,
+      },
+      name: 'session-cookie',
+    })
+  )
+
+  app.use('/', indexRouter)
+  app.use('/user', userRouter)
+
+  app.use((req, res, next) => {
+    res.status(404).send('Not Found')
+  })
+  ...
+  ```
+
+- next 함수에 다음 라우터로 넘어가는 기능이 있다.
+
+  - next('route') 이며, 라우터에 연결된 나머지 미들웨어들을 건너뛰고 싶을 때 사용한다.
+
+    ```javascript
+    router.get(
+      '/',
+      (req, res, next) => {
+        next('route')
+      },
+      (req, res, next) => {
+        console.log('실행되지 않습니다.')
+        next()
+      },
+      (req, res, next) => {
+        console.log('실행되지 않습니다.')
+        next()
+      }
+    )
+    router.get('/', (req, res, next) => {
+      console.log('실행됩니다')
+      res.send('Hello, Express')
+    })
+    ```
+
+    - 같은 주소의 라우터를 여러 개 만들어도 된다. 라우터가 몇 개든 간에 next() 를 호출하면 다음 미들웨어가 실행된다.
+    - next() 대신 next('route') 를 호출하면, 실행하지 않은 미들웨어가 있더라도 주소에 일치하는 다음 라우터로 간다.
+
+- 라우터 주소에는 정규표현식을 비롯한 특수 패턴을 사용할 수 있다.
+
+  - 자주 쓰이는 패턴 중 라우트 매개변수라고 불리는 패턴
+
+    ```javascript
+    router.get('/user/:id', (req, res) => {
+      console.log(req.params, req.query)
+    })
+    ```
+
+    - 주소에 :id 는 문자 그대로 :id를 의미하는 것이 아니다. 이 부분에는 다른 값을 넣을수 있다.
+
+      - /user/1 이나 /user/123 등의 요청도 이 라우터가 처리하게 된다.
+
+      - req.params 객체 안에 들어있고, :id 면 req.params.id로 조회할 수 있다.
+
+    - 이 패턴을 사용할 때 주의할 점
+
+      - 일반 라우터보다 뒤에 위치해야 한다. 다양한 라우터를 아우르는 와일드카드 역할을 하므로 일반 라우터보다는 뒤에 위치해야 다른 라우터를 방해하지 않는다.
+
+        ```javascript
+        router.get('/user/:id', (req, res) => {
+          console.log('얘만 실행됩니다.')
+        })
+        router.get('/user/like', (req, res) => {
+          console.log('전혀 실행되지 않습니다.')
+        })
+        ```
+
+        - /user/like 라우터는 /user/:id 라우터보다 위에 위치해야 한다.
+
+    - 주소에 쿼리스트링을 쓸 경우 쿼리스트링의 키-값 정보는 req.query 객체 안에 있다.
+
+- 라우터에서 자주 쓰이는 활용법으로 app.route 나 router.route 가 있다.
+
+  ```javascript
+  router.get('/abc', (req, res) => {
+    res.send('GET /abc')
+  })
+  router.post('/abc', (req, res) => {
+    res.send('POST /abc')
+  })
+  ```
+
+  ```javascript
+  router
+    .route('/abc')
+    .get((req, res) => {
+      res.send('GET /abc')
+    })
+    .post((req, res) => {
+      res.send('POST /abc')
+    })
+  ```
+
 ## 📌 6.4 req, res 객체 살펴보기
 
 ## 📌 6.5 템플릿 엔진 사용하기
