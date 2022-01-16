@@ -48,13 +48,13 @@
 
 - 데이터베이스 생성하기
 
-  ```
+  ```sql
   CREATE SCHEMA 'nodejs' DEFAULT CHARACTER SET utf8;
   ```
 
 - 테이블 생성하기
 
-  ```
+  ```sql
   CREATE TABLE nodejs.users (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(20) NOT NULL,
@@ -118,16 +118,55 @@
 
 - 테이블 정보확인
 
-  ```
+  ```sql
   DESC users;
   ```
 
 - 테이블 삭제
 
-  ```
+  ```sql
   DROP TABLE users;
   ```
 
 ## 📌 7.5 CRUD 작업하기
 
+- Create(생성)
+
+  ```sql
+  INSERT INTO nodejs.users(name, age, married, comment) VALUES('zero', 24, 0, '자기소개1');
+  INSERT INTO nodejs.users(name, age, married, comment) VALUES('nero', 32, 1, '자기소개2');
+  INSERT INTO nodejs.comments(commenter, comment) VALUES(1, '안녕하세요. zero의 댓글입니다.');
+  ```
+
+- Read(조회)
+
+  ```sql
+  SELECT * FROM nodejs.users;
+  SELECT * FROM nodejs.comments;
+
+  SELECT name, married FROM nodejs.users;
+
+  SELECT name, age FROM nodejs.users WHERE married = 1 AND age > 30;
+  SELECT id, name FROM nodejs.users WHERE married = 0 OR age > 30;
+
+  SELECT id, name FROM nodejs.users ORDER BY age DESC;
+  SELECT id, name FROM nodejs.users ORDER BY age DESC LIMIT 1;
+  SELECT id, name FROM nodejs.users ORDER BY age DESC LIMIT 1 OFFSET 1;
+  ```
+
+- Update(수정)
+
+  ```sql
+  UPDATE nodejs.users SET comment = '바꿀 내용' WHERE id = 2;
+  ```
+
+- Delete(삭제)
+  ```sql
+  DELETE FROM nodejs.users WHERE id = 2;
+  ```
+
 ## 📌 7.6 시퀄라이즈 사용하기
+
+- 노드에서 MySQL 작업을 쉽게 할 수 있도록 도와주는 라이브러리이다.
+- 시퀄라이즈는 ORM(Object-relational Mapping)으로 분류된다.
+  - 시퀄라이즈를 사용하는 이유는 자바스크립트 구문을 알아서 SQL로 바꿔주기 때문이다.
