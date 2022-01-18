@@ -1,7 +1,5 @@
 # Chapter07. MySQL
 
-➕
-
 ## 📌 7.1 데이터베이스란?
 
 - 데이터베이스
@@ -170,3 +168,192 @@
 - 노드에서 MySQL 작업을 쉽게 할 수 있도록 도와주는 라이브러리이다.
 - 시퀄라이즈는 ORM(Object-relational Mapping)으로 분류된다.
   - 시퀄라이즈를 사용하는 이유는 자바스크립트 구문을 알아서 SQL로 바꿔주기 때문이다.
+
+### ➕ 7.6.4 쿼리 알아보기
+
+- `create`
+
+  ```sql
+  INSERT INTO nodejs.users(name, age, married, comment) VALUES ('zero', 24, 0, '자기소개1')
+  ```
+
+  ```javascript
+  const User = require('../models')
+  User.create({
+    name: 'zero',
+    age: 24,
+    married: 0,
+    comment: '자기소개1',
+  })
+  ```
+
+- `findAll`
+
+  ```sql
+  SELECT * FROM nodejs.users
+  ```
+
+  ```javascript
+  User.findAll({})
+  ```
+
+- `findOne`
+
+  ```sql
+  SELECT * FROM nodejs.users LIMIT 1
+  ```
+
+  ```javascript
+  User.findOne({})
+  ```
+
+- `attributes` 옵션
+
+  ```sql
+  SELECT name, married FROM nodejs.users
+  ```
+
+  ```javascript
+  User.findAll({
+    attributes: ['name', 'married'],
+  })
+  ```
+
+- `where` 옵션
+
+  ```sql
+  SELECT name, age FROM nodejs.users WHERE married = 1 AND age > 30
+  ```
+
+  ```javascript
+  const { Op } = require('sequelize')
+  User.findAll({
+    attributes: ['name', 'age'],
+    where: {
+      married: true,
+      age: {
+        [Op.gt]: 30,
+      },
+    },
+  })
+  ```
+
+- `Op.or`
+
+  ```sql
+  SELECT id, name FROM users WHERE married = 0 OR age > 30
+  ```
+
+  ```javascript
+  User.findAll({
+    attributes: ['id', 'name'],
+    where: {
+      [Op.or]: [
+        { married: false },
+        {
+          age: {
+            [Op.gt]: 30,
+          },
+        },
+      ],
+    },
+  })
+  ```
+
+- `order` 옵션
+
+  ```sql
+  SELECT id, name FROM users ORDER BY age DESC
+  ```
+
+  ```javascript
+  User.findAll({
+    attributes: ['id', 'name'],
+    order: [['age', 'DESC']],
+  })
+  ```
+
+- `LIMIT`
+
+  ```sql
+  SELECT id, name FROM users ORDER BY age DESC LIMIT 1
+  ```
+
+  ```javascript
+  User.findAll({
+    attributes: ['id', 'name'],
+    order: [['age', 'DESC']],
+    limit: 1,
+  })
+  ```
+
+- `OFFSET`
+
+  ```sql
+  SELECT id, name FROM users ORDER BY age DESC LIMIT 1 OFFSET 1
+  ```
+
+  ```javascript
+  User.findAll({
+    attributes: ['id', 'name'],
+    order: [['age', 'DESC']],
+    limit: 1,
+    offset: 1,
+  })
+  ```
+
+- `update`
+
+  ```sql
+  UPDATE nodejs.users SET comment = '바꿀 내용' WHERE id = 2
+  ```
+
+  ```javascript
+  User.update(
+    {
+      comment: '바꿀 내용',
+    },
+    {
+      where: { id: 2 },
+    }
+  )
+  ```
+
+- `destroy`
+
+  ```sql
+  DELETE FROM nodejs.users WHERE id = 2
+  ```
+
+  ```javascript
+  User.destroy({
+    where: { id: 2 },
+  })
+  ```
+
+### ➕ 7.6.4.1 관계 쿼리
+
+- `User` 모델과 `Comment` 모델이 hasMany-belongTo 관계에 있을 때
+- 사용자를 가져오면서 그 사람의 댓글까지 가져오고 싶을 경우
+
+  ```javascript
+  const user = await User.findOne({
+    include: [
+      {
+        model: Comment,
+      },
+    ],
+  })
+
+  const comments = user.getComments()
+  ```
+
+  - 관계를 설정했다면 getComments(조회), setComments(수정), addComment(하나 생성), addComments(여러 개 생성), removeComments(삭제) 메서드를 지원한다.
+
+### ➕ 7.6.4.2 SQL 쿼리하기
+
+- 직접 SQL문을 통해 쿼리할 수 도 있다.
+
+```javascript
+const [result, metadata] = await sequelize.query('SELECT * FROM comments')
+```
