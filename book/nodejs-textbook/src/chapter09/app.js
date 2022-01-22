@@ -4,12 +4,15 @@ const cookieParser = require('cookie-parser')
 const nunjucks = require('nunjucks')
 const morgan = require('morgan')
 const path = require('path')
+const passport = require('passport')
 
 const { sequelize } = require('./models')
+const passportConfig = require('./passport')
 
 const pageRouter = require('./routes/page')
 
 const app = express()
+passportConfig()
 app.set('view engine', 'html')
 nunjucks.configure('views', {
   express: app,
@@ -41,6 +44,14 @@ app.use(
     },
   })
 )
+/**
+ * passport.initialize(): req 객체에 passport 정보를 저장하고,
+ * passport.session(): req.session 객체에 passport 정보를 저장한다.
+ *
+ * req.session 객체는 express-session 에서 생성하는 것이므로 passport 미들웨어는 express-session 미들웨어보다 뒤에 연결해야 한다.
+ */
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.use('/', pageRouter)
 
