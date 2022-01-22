@@ -5,6 +5,8 @@ const nunjucks = require('nunjucks')
 const morgan = require('morgan')
 const path = require('path')
 
+const { sequelize } = require('./models')
+
 const pageRouter = require('./routes/page')
 
 const app = express()
@@ -13,6 +15,15 @@ nunjucks.configure('views', {
   express: app,
   watch: true,
 })
+
+sequelize
+  .sync({ force: false })
+  .then(() => {
+    console.log('Success database connecting!')
+  })
+  .catch((err) => {
+    console.error(err)
+  })
 
 app.use(morgan('dev'))
 app.use(express.static(path.resolve(__dirname, 'public')))
