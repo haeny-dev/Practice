@@ -1,0 +1,14 @@
+{
+  "name": "the-basics",
+  "version": "1.0.0",
+  "description": "TypeScript Docs Handbook-2-TheBasics",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "haeny-dev",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^4.5.5"
+  }
+}
