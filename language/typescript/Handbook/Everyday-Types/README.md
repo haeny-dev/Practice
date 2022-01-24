@@ -364,3 +364,130 @@
 - 대부분의 경우 개인적 선호에 따라 인터페이스와 타입 중에서 선택할 수 있으며, 필요하다면 TypeScript가 다른 선택을 제안할 것이다.
 - 우선 `interface` 를 사용하고 이후 문제가 발생하였을 때 `type` 을 사용하자.
 
+## ➕ 타입 단언
+- 때로는 TypeScript보다 개발자가 어떤 값의 타입에 대한 정보를 더 잘 아는 경우도 존재한다.
+    - 예를 들어 코드상에서 `document.getElementById` 가 사용되는 경우,
+        - TypeScript는 이때 `HTMLElement` 중에 무언가가 반환된다는 것만을 알 수 있는 반면에, 
+        - 개발자는 페이지 상에서 사용되는 ID로는 언제나 `HTMLCanvasElement` 가 반환된다는 사실을 이미 알고 있을 수도 있다.
+        - 이런 경우, 타입 단언을 사용하면 타입을 좀 더 구체적으로 명시할 수 있다.
+            
+            ```typescript
+            const myCanvas = document.getElementById('main_canvas') as HTMLCanvasElement;
+            ```
+
+        - 타입 표기와 마찬가지로, 타입 단언은 컴파일러에 의하여 제거되며 코드의 런타임 동작에는 영향을 주지 않는다.
+        - <> 를 사용하는 것 또한(코드가 `.tsx` 파일이 아닌 경우) 가능하며, 이는 동일한 의미를 가진다.
+            
+            ```typescript
+            const myCanvas = <HTMLCanvasElement>document.getElementById('main_canvas')
+            ```
+
+        - 타입 단언은 컴파일 시간에 제거되므로, 타입 단언에 관련된 검사는 런타임 중에 이루어지지 않는다.
+            - 타입 단언이 틀렸더라도 예외가 발생하거나 null이 생성되지 않을 것이다.
+
+- TypeScript에서는 보다 구체적인 또는 덜 구체적인 버전의 타입으로 변환하는 타입 단언만이 허용된다.
+    - 이러한 규칙은 불가능한 강제 변환을 방지한다.
+        
+        ```typescript
+        const x = 'hello' as number
+        // Conversion of type 'string' to type 'number' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+        ```
+
+- 규칙이 때로는 지나치게 보수적으로 작용하여, 복잡하기는 하지만 유효할 수 있는 강제 변환이 허용되지 않기도 한다.
+    - 이런 경우, 두 번의 단언을 사용할 수 있다.
+    - `any` 로 우선 변환한 뒤, 그다음 원하는 타입으로 변환하면 된다.
+
+        ```typescript
+        declare const expr: any
+        type T = { a: 1, b: 2, c: 3}
+        //...
+        const a = (expr as any) as T;
+        ```
+
+
+## ➕ 리터럴 타입
+- `string` 과 `number` 와 같은 일반적인 타입 이외에도, 구체적인 문자열과 숫자 값을 타입 위치에서 지정할 수 있다.
+    - `var` 와 `let` 모두 변수에 저장 가능한 값의 종류를 변경할 수 있으며, `const` 는 이것이 불가능하다.
+    - 이러한 특징들은 TypeScript가 리터럴 값을 위한 타입을 생성하는 방식에 그대로 반영된다.
+
+        ```typescript
+        let changingString = 'Hello World'
+        changingString = 'Olá Mundo'
+        // 변수 changingString 은 어떤 문자열이든 모두 나타낼 수 있으며,
+        // 이는 TypeScript의 타입 시스템에서 문자열 타입 변수를 다루는 방식과 동일하다.
+        changingString // let changingString: string
+
+        const constantString = 'Hello World'
+        // 변수 constantString 은 오직 단 한 종류의 문자열만 나타낼 수 있으며,
+        // 이는 리터럴 타입의 표현 방식이다.
+        constantString // const constantString: 'Hello World'
+        ```
+
+    - 리터럴 타입은 그 자체만으로는 그다지 유의미하지 않다.
+
+        ```typescript
+        let x: 'hello' = 'hello'
+        x = 'hello' // OK
+        x = 'howdy' // Type '"howdy"' is not assignable to type '"hello"'
+        ```
+        - 단 하나의 값만을 가질 수 있는 변수는 쓸모가 없다.
+
+    - 리터럴을 유니언과 함께 사용하면, 보다 유용한 개념들을 표현할 수 있게 된다.
+        - 예를 들어, 특정 종류의 값들만을 인자로 받을 수 있는 함수를 정의하는 경우
+
+            ```typescript
+            function printText(s: string, alignment: 'left'|'right'|'center'){
+                //...
+            }
+            printText('Hello, world', 'left') // OK
+            printText('Gday, mate', 'centre')
+            // Argument of type '"centre"' is not assignable to 
+            // parameter of type ''left'|'right'|'center''.
+            ```
+
+    - 숫자 리터럴 타입 또한 같은 방식으로 사용할 수 있다.
+
+        ```typescript
+        function compare(a: string, b: string): -1 | 0 | 1 {
+            return a === b ? 0 : a > b ? 1 : -1
+        }
+        ```
+
+    - 리터럴이 아닌 타입과도 함께 사용할 수 있다.
+
+        ```typescript
+        interface Options {
+            width: number
+        }
+        function configure(x: Options | 'auto'){
+            //...
+        }
+        configure({width: 100}) // OK
+        configure('auto') // OK
+        configure('automatic')
+        // Argument of type '"automatic"' is not assignable to 
+        // parameter of type 'Options | "auto"'.
+        ```
+
+    - 불 리터럴 타입
+        - 불 리터럴에는 오직 두개의 타입만이 존재하며, `true` 와 `false` 이다.
+        - `boolean` 타입 자체는 사실 단지 `true | false` 유니언 타입의 별칭이다.
+
+- 리터럴 추론
+    - 객체를 사용하여 변수를 초기화하면, TypeScript는 해당 객체의 프로퍼티는 이후에 그 값이 변화할 수 있다고 가정한다.
+        
+        ```typescript
+        declare const someCondition: boolean
+        // ...
+        const obj = { counter: 0 }
+        if (someCondition){
+            obj.counter = 1
+        }
+        ```
+        - 기존에 값이 0 이었던 필드에 1 을 대입하였을 때 TypeScript는 이를 오류로 간주하지 않는다.
+        - 이를 달리 말하면 `obj.counter` 는 반드시 `number` 타입을 가져야 하며, `0` 리터럴 타입을 가질 수 없다는 의미이다.
+        - 왜냐하면 타입은 읽기 및 쓰기 두 동작을 결장하는 데에 사용되기 때문이다.
+
+
+
+    
