@@ -488,6 +488,95 @@
         - 이를 달리 말하면 `obj.counter` 는 반드시 `number` 타입을 가져야 하며, `0` 리터럴 타입을 가질 수 없다는 의미이다.
         - 왜냐하면 타입은 읽기 및 쓰기 두 동작을 결장하는 데에 사용되기 때문이다.
 
+    - 이와 같은 사항은 문자열에도 적용된다.
 
+        ```typescript
+        const req = { url: 'https://example.com', method: 'GET' }
+        handleRequest(req.url, req.method)
+        // Argument of type 'string' is not assignable to parameter of type '"GET"|"POST"'.
+        ```
+        - 위 예시에서 `req.method` 는 `string` 으로 추론되지, `"GET"` 으로 추론되지 않는다.
+        - `req` 의 생성 시점과 `handleRequest` 의 호출 시점 사이에도 `req.method` 에 `"GUESS"` 와 같은 새로운 문자열이 대입될 수 있으므로, TypeScript는 오류가 있다고 판단한다.
+        - 이러한 경우를 해결하는 방법
+            1. 둘 중에 한 위치에 타입 단언을 추가하여 추론 방식을 변경
 
-    
+                ```typescript
+                // #1
+                const req = { url: 'https://example.com', method: 'GET' as 'GET' }
+                // #2
+                handleRequest(req.url, req.method as 'GET')
+                ```
+                - #1 은 `req.method` 가 항상 리터럴 타입 `GET` 이기를 의도하며, 이에 따라 해당 필드에 `GUESS` 와 같은 값이 대입되는 경우를 미연에 방지하겠다는 의미이다.
+                - #2 는 `req.method` 가 `GET` 을 값으로 가진다는 사실을 알고 있다는 것을 의미한다.
+
+            2. `as const` 를 사용하여 객체 전체를 리터럴 타입으로 변환할 수 있다.
+
+                ```typescript
+                declare function handleRequest(url: string, method: 'GET'|'POST'): void;
+                // ...
+                const req = { url: 'https://example.com', method: 'GET'} as const
+                handleRequest(req.url, req.method)
+                ```
+                - `as const` 접미사는 일반적인 `const` 와 유사하게 작동하는데, 해당 객체의 모든 프로퍼티에 `string` 또는 `number` 와 같은 보다 일반적인 타입이 아닌 리터럴 타입의 값이 대입되도록 보장한다.
+
+## ➕ `null` 과 `undefined` 
+- JavaScript에는 빈 값 또는 초기화되지 않은 값을 가리키는 두 가지 원시값이 존재한다. 바로 `null` 과 `undefined` 이다.
+- TypeScript에는 각 값에 대응하는 동일한 이름의 두 가지 타입이 존재한다. 
+
+- 각 타입의 동작 방식은 `strictNullChecks` 옵션의 설정 여부에 따라 달라진다.
+    - `strictNullChecks` 가 설정되지 않았을 때
+        - 어떤 값이 `null` 또는 `undefined` 일 수 있더라도 해당 값에 평소와 같이 접근할 수 있으며, `null` 과 `undefined` 는 모든 타입의 변수에 대입될 수 있다.
+        - 이는 Null 검사를 하지 않는 언어의 동작 방식과 유사하다.
+
+    - `strictNullChecks` 설정되었을 때
+        - 어떤 값이 `null` 또는 `undefined` 일 때, 해당 값과 함께 메서드 또는 프로퍼티를 사용하기에 앞서 해당 값을 테스트해야 한다.
+        - 옵셔널 프로퍼티를 사용하기에 앞서 `undefined` 여부를 검사하는 것과 마찬가지로, 좁히기를 통하여 `null` 일 수 있는 값에 대한 검사를 수행할 수 있다.
+        
+            ```typescript
+            function doSomething(x: string | undefined){
+                if(x === undefined){
+                    // Nothing
+                } else {
+                    console.log('Hello, ' + x.toUpperCase())
+                }
+            }
+            ```
+
+- Null 아님 단언 연산자(접미사 `!`)
+    - TypeScript에서는 명시적인 검사를 하지 않고도 타입에서 `null` 과 `undefined` 를 제거할 수 있는 특별한 구문을 제공한다.
+    - 표현식 뒤에 `!` 를 작성하면 해당 값이 `null` 또는 `undefined` 가 아니라고 타입 단언하는 것이다.
+
+        ```typescript
+        function liveDangerously(x?: number | undefined){
+            console.log(x!.toFixed())   // OK
+        }
+        ```
+    - 다른 타입 단언과 마찬가지로 이 구문은 코드의 런타임 동작을 변화시키지 않으므로, `!` 연산자는 반드시 해당 값이 `null` 또는 `undefined` 가 아닌 경우에만 사용해야 한다.
+
+## ➕ 그 외
+- 열거형
+    - 열거형은 TypeScript가 JavaScript에 추가하는 기능으로, 어떤 값이 이름이 있는 상수 집합에 속한 값 중 하나일 수 있도록 제한하는 기능이다.
+    - 이 기능은 JavaScript에 타입 수준이 아닌, 언어와 런타임 수준에 추가되는 기능이다.
+
+- 자주 사용되지 않는 원시형 타입
+    - `bigint`
+        - ES2020 이후, 아주 큰 정수를 다루기 위한 원시 타입이 JavaScript에 추가되었고, `bigint` 이다.
+            ```typescript
+            // #1. BigInt 함수를 통하여 bigint 값 생성
+            const oneHundred: bigint = BigInt(100)
+
+            // #2. 리터럴 구문을 통하여 bigint 값 생성
+            const anotherHundred: bigint = 100n
+            ```
+
+    - `symbol`
+        - `symbol` 은 전역적으로 고유한 참조값을 생성하는 데에 사용할 수 있는 원시 타입이며, `Symbol()` 함수를 통하여 생성할 수 있다.
+            ```typescript
+            const firstName = Symbol('name')
+            const secondName = Symbol('name')
+
+            if(firstName === secondName){
+                // This condition will always return 'false' 
+                // since the types 'typeof firstName' and 'typeof secondName' have no overlap.
+            }
+            ```
