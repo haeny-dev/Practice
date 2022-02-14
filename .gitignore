@@ -1,4 +1,16 @@
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
 node_modules
 
-.idea/
-out
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.iprg
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
