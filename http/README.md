@@ -5,3 +5,4 @@
 [![HTTP 기본](images/http-basic-card.png)](./http-basic/README.md)
 [![HTTP 메서드](images/http-method-card.png)](./http-method/README.md)
 [![HTTP 메서드 활용](images/http-method-uses-card.png)](./http-method-uses/README.md)
+[![HTTP 상태코드](images/http-statuscode-card.png)](./http-statuscode/README.md)
