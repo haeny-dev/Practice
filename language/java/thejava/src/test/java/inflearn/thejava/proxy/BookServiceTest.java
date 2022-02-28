@@ -5,13 +5,16 @@ import net.bytebuddy.implementation.InvocationHandlerAdapter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static org.mockito.Mockito.*;
 
 class BookServiceTest {
 
@@ -59,10 +62,15 @@ class BookServiceTest {
         BookService bookService = (BookService) Enhancer.create(BookService.class, handler);
          */
 
+        BookRepository bookRepositoryMock = mock(BookRepository.class);
+        Book hibernateBook = new Book();
+        hibernateBook.setTitle("Hibernate");
+        when(bookRepositoryMock.save(any())).thenReturn(hibernateBook);
+
         /* ByteBuddy 사용 */
         Class<? extends DefaultBookService> proxyClass = new ByteBuddy().subclass(DefaultBookService.class)
                 .method(named("rent")).intercept(InvocationHandlerAdapter.of(new InvocationHandler() {
-                    DefaultBookService bookService = new DefaultBookService();
+                    DefaultBookService bookService = new DefaultBookService(bookRepositoryMock);
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                         if (method.getName().equals("rent")) {
