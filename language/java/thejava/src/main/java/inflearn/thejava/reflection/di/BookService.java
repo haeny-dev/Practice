@@ -1,4 +1,4 @@
-package inflearn.thejava.reflection;
+package inflearn.thejava.reflection.di;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
