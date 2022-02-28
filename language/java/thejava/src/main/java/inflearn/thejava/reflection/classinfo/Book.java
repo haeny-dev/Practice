@@ -1,5 +1,10 @@
 package inflearn.thejava.reflection.classinfo;
 
+import inflearn.thejava.reflection.annotation.AnotherAnnotation;
+import inflearn.thejava.reflection.annotation.MyAnnotation;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+
+@MyAnnotation("Value")
 public class Book {
 
     private static String B = "BOOK";
@@ -7,6 +12,7 @@ public class Book {
 
     private String a = "a";
 
+    @AnotherAnnotation
     public String d = "d";
 
     protected String e = "e";
@@ -14,12 +20,14 @@ public class Book {
     public Book() {
     }
 
+    @AnotherAnnotation
     public Book(String a, String d, String e) {
         this.a = a;
         this.d = d;
         this.e = e;
     }
 
+    @AnotherAnnotation
     private void f() {
         System.out.println("F");
     }
