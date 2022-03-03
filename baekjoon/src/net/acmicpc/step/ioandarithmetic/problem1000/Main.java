@@ -1,4 +1,4 @@
-package net.acmicpc.step.problem1000;
+package net.acmicpc.step.ioandarithmetic.problem1000;
 
 
 import java.io.*;

@@ -1,4 +1,4 @@
-package net.acmicpc.step.problem10171;
+package net.acmicpc.step.ioandarithmetic.problem10171;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package net.acmicpc.step.problem2588;
+package net.acmicpc.step.ioandarithmetic.problem2588;
 
 import java.io.BufferedReader;
 import java.io.IOException;
