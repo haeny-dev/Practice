@@ -1,4 +1,4 @@
-package net.acmicpc.step.forstatement.problem11021;
+package net.acmicpc.step.forstatement.problem11022;
 
 import java.io.*;
 import java.util.StringTokenizer;
@@ -15,7 +15,7 @@ public class Main {
             st = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(st.nextToken());
             int b = Integer.parseInt(st.nextToken());
-            bw.write("Case #" + (i + 1) + ": " + (a + b) + "\n");
+            bw.write("Case #" + (i + 1) + ": " + a + " + " + b + " = " + (a + b) + "\n");
         }
 
         bw.flush();
