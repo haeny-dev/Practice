@@ -7,11 +7,19 @@ public class Main {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         br.readLine();
-        int[] numbers = Arrays.stream(br.readLine().split(" "))
-                .mapToInt(Integer::parseInt)
-                .sorted()
-                .toArray();
+        int[] numbers = Arrays.stream(br.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+        br.close();
 
-        System.out.print(numbers[0] + " " + numbers[numbers.length - 1]);
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+        for (int number : numbers) {
+            if (number > max) {
+                max = number;
+            }
+            if (number < min) {
+                min = number;
+            }
+        }
+        System.out.print(min + " " + max);
     }
 }
