@@ -5,6 +5,6 @@ public final class Member {
     private int age;
 }
 
-public class SubMember extends Member{
-
-}
+//public class SubMember extends Member{
+//
+//}
