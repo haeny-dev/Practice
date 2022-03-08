@@ -1,9 +1,30 @@
 package generic;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class App {
     public static void main(String[] args) {
-        Box<Integer> bi;
-        bi = createBox();
+        List<Integer> integerList = new ArrayList<>();
+        List<Double> doubleList = new ArrayList<>();
+        List<Number> numberList = new ArrayList<>();
+
+        sumOfListByWildcard(integerList);
+        sumOfListByWildcard(doubleList);
+        sumOfListByWildcard(numberList);
+    }
+
+    private static void processStringList(List<String> stringList) {
+        // ....
+    }
+
+    public static double sumOfListByWildcard(List<? extends Number> list) {
+        double s = 0;
+        for (Number number : list) {
+            s += number.doubleValue();
+        }
+        return s;
     }
 
     private static Box createBox() {
