@@ -12,14 +12,11 @@ public class Main {
         long A = Long.parseLong(st.nextToken());
         long B = Long.parseLong(st.nextToken());
         long C = Long.parseLong(st.nextToken());
-        int n = 0;
-        if (B >= C) {
+        long distance = C - B;
+        if (distance <= 0) {
             System.out.print(-1);
             return;
         }
-        while(A + B * n >= C * n){
-            n++;
-        }
-        System.out.print(n);
+        System.out.print(A/distance + 1);
     }
 }
