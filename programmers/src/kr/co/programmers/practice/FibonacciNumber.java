@@ -1,4 +1,4 @@
-package kr.co.programmers.java.practice;
+package kr.co.programmers.practice;
 
 public class FibonacciNumber {
 
