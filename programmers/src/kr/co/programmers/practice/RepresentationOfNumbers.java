@@ -1,10 +1,10 @@
-package kr.co.programmers.java.practice;
+package kr.co.programmers.practice;
 
 public class RepresentationOfNumbers {
 
     public static void main(String[] args) {
         int n = 15;
-        System.out.println(new Solution().solution(n));
+        System.out.println(new Solution().solution2(n));
     }
 
     static class Solution {
@@ -29,6 +29,23 @@ public class RepresentationOfNumbers {
             }
 
             return answer;
+        }
+
+        public int solution2(int n){
+            int answer = 0;
+            int K = 1;
+            double v = firstNumber(n, K);
+            while (v > 0) {
+                if (v == (int)v) {
+                    answer++;
+                }
+                v = firstNumber(n, ++K);
+            }
+            return answer;
+        }
+
+        private double firstNumber(int n, int K) {
+            return ((double)(2 * n) / K - K + 1) / 2;
         }
     }
 }
