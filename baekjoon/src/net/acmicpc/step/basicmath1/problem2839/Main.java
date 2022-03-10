@@ -8,17 +8,11 @@ public class Main {
 
         if (N == 4 || N == 7) {
             System.out.print(-1);
-        }
-
-        if (N % 5 == 0) {
+        } else if (N % 5 == 0) {
             System.out.print(N / 5);
-        }
-
-        if (N % 5 == 1 || N % 5 == 3) {
+        } else if (N % 5 == 1 || N % 5 == 3) {
             System.out.print(N / 5 + 1);
-        }
-
-        if (N % 5 == 2 || N % 5 == 4) {
+        } else if (N % 5 == 2 || N % 5 == 4) {
             System.out.print(N / 5 + 2);
         }
     }
