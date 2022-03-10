@@ -23,7 +23,6 @@ public class Main {
          * D >= V-B / A-B
          */
 
-
         System.out.print( (V-B)%(A-B) == 0 ? (V-B)/(A-B) : (V-B)/(A-B) + 1);
     }
 }
