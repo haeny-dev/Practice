@@ -1,4 +1,6 @@
-package kr.co.programmers.java.practice;
+package kr.co.programmers.practice;
+
+import java.util.Arrays;
 
 public class EatTheGround {
 
@@ -8,11 +10,11 @@ public class EatTheGround {
                 {5, 6, 7, 8},
                 {4, 3, 2, 1}
         };
-        System.out.println(new Solution().solution(land));
+        System.out.println(new Solution().solution2(land));
     }
 
     static class Solution {
-        int solution(int[][] land) {
+        public int solution(int[][] land) {
             int answer = 0;
 
             if(land.length == 1){
@@ -33,6 +35,17 @@ public class EatTheGround {
             }
 
             return answer;
+        }
+
+        public int solution2(int[][] land){
+            int[] result = Arrays.stream(land).reduce(new int[]{0, 0, 0, 0}, (a, b) -> new int[]{
+                    b[0] + Math.max(a[1], Math.max(a[2], a[3])),
+                    b[1] + Math.max(a[0], Math.max(a[2], a[3])),
+                    b[2] + Math.max(a[0], Math.max(a[1], a[3])),
+                    b[3] + Math.max(a[0], Math.max(a[1], a[2]))
+            });
+
+            return Math.max(result[0], Math.max(result[1], Math.max(result[2], result[3])));
         }
     }
 
