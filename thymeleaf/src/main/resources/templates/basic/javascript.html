@@ -1,0 +1,27 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<!-- JavaScript Inline 사용 전 -->
+<script>
+    const username = [[${user.username}]];
+    const age = [[${user.age}]];
+
+    const username2 = /*[[${user.username}]]*/"test username";
+
+    const user = [[${user}]];
+</script>
+<!-- JavaScript Inline 사용 후 -->
+<script th:inline="javascript">
+    const username3 = [[${user.username}]];
+    const age2 = [[${user.age}]];
+
+    const username4 = /*[[${user.username}]]*/"test username";
+
+    const user2 = [[${user}]];
+</script>
+</body>
+</html>
