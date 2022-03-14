@@ -1,0 +1,15 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <h1>컨텐츠에 데이터 출력하기</h1>
+    <ul>
+        <li><span
+            th:text="${data}">th:text 사용하기</span></li>
+        <li><span>[[${data}]]</span></li>
+    </ul>
+</body>
+</html>
