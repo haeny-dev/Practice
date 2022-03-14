@@ -1,0 +1,55 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<h1>SpringEL 표현식</h1>
+<h2>Object</h2>
+<ul>
+    <li>
+        <span>${user.username} : </span>
+        <span th:text="${user.username}"></span>
+    </li>
+    <li>
+        <span>${user['username']} : </span>
+        <span th:text="${user['username']}"></span>
+    </li>
+    <li>
+        <span>${user.getUsername()} : </span>
+        <span th:text="${user.getUsername()}"></span>
+    </li>
+</ul>
+<h2>List</h2>
+<ul>
+    <li>
+        <span>${users[0].username} : </span>
+        <span th:text="${users[0].username}"></span>
+    </li>
+    <li>
+        <span>${users[0]['username']} : </span>
+        <span th:text="${users[0]['username']}"></span>
+    </li>
+    <li>
+        <span>${users[0].getUsername()} : </span>
+        <span th:text="${users[0].getUsername()}"></span>
+    </li>
+</ul>
+<h2>Map</h2>
+<ul>
+    <li>
+        <span>${userMap['userA'].username} : </span>
+        <span th:text="${userMap['userA'].username}"></span>
+    </li>
+    <li>
+        <span>${userMap['userA']['username']} : </span>
+        <span th:text="${userMap['userA']['username']}"></span>
+    </li>
+    <li>
+        <span>${userMap['userA'].getUsername()} : </span>
+        <span th:text="${userMap['userA'].getUsername()}"></span>
+    </li>
+</ul>
+</body>
+</html>
