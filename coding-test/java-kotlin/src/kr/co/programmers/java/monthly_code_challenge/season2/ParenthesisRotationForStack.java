@@ -5,7 +5,7 @@ import java.util.Stack;
 public class ParenthesisRotationForStack {
 
     public static void main(String[] args) {
-        String s = "[](){}";
+        String s = "[]([[]){}";
         System.out.println(new Solution().solution(s));
     }
 
