@@ -1,13 +1,12 @@
 package collectionframwork;
 
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 
 public class App {
 
     public static void main(String[] args) {
+
+
     }
 
     private static void linkedHashMap() {
