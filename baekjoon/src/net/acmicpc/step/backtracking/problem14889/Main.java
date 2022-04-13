@@ -7,46 +7,47 @@ import java.util.StringTokenizer;
 
 public class Main {
 
-    private static int min = Integer.MAX_VALUE;
+    private static int N;
     private static int[][] abilities;
     private static boolean[] selected;
 
+    private static int min = Integer.MAX_VALUE;
+
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st;
 
-        int N = Integer.parseInt(br.readLine());
+        N = Integer.parseInt(br.readLine());
 
+        selected = new boolean[N];
         abilities = new int[N][N];
+
         for (int i = 0; i < N; i++) {
-            st = new StringTokenizer(br.readLine(), " ");
+            StringTokenizer st = new StringTokenizer(br.readLine(), " ");
             for (int j = 0; j < N; j++) {
                 abilities[i][j] = Integer.parseInt(st.nextToken());
             }
         }
 
-        selected = new boolean[N];
-        combiTeam(N, 0, 0);
-
+        combiTeam(0, 0);
         System.out.println(min);
     }
 
-    private static void combiTeam(int N, int count, int idx) {
+    private static void combiTeam(int count, int idx) {
         if (count == N/2) {
-            difference(N);
+            difference();
             return;
         }
 
         for (int i = idx; i < N; i++) {
             if(!selected[i]){
                 selected[i] = true;
-                combiTeam(N, count + 1, idx + 1);
+                combiTeam(count + 1, i + 1);
                 selected[i] = false;
             }
         }
     }
 
-    private static void difference(int N) {
+    private static void difference() {
         int startTeam = 0;
         int linkTeam = 0;
 
