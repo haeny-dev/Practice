@@ -1,13 +1,62 @@
 package lambda;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 public class App {
     public static void main(String[] args) {
 
         String[] strings = {"a", "abgsd", "asd", "db"};
+        List<String> list = Arrays.asList(strings);
 
+        // 람다 표현식
+        lambdaExpression(strings);
+
+        // 메소드 레퍼런스
+        methodReference(strings);
+
+        // 생성자 레퍼런스
+        constructorReference(list);
+
+        // 변수 유효 범위
+        repeatMessage("Hello", 100);
+
+    }
+
+    /**
+     * repeatMessage 메서드의 지역변수인 message와 count를 람다 표현식 내에서 사용이 가능하다.
+     * - 람다 표현식에서는 값이 변하지 않는 변수만 참조할 수 있다. (이유: ThreadSafe)
+     * - 중첩 블록과 동일한 유효 범위를 가진다. -> 동일한 이름 및 가리기 규칙 적용된다.
+     */
+    private static void repeatMessage(String message, int count) {
+        Runnable r = () -> {
+            for (int i = 0; i < count; i++) {
+//                count--;  // 변경불가
+//                String message = "aa"; // 사용불가
+                System.out.println(message);
+                Thread.yield();
+            }
+        };
+        new Thread(r).start();
+    }
+
+    private static void constructorReference(List<String> list) {
+        Object[] objects = list.toArray();
+        String[] stringArray = list.toArray(String[]::new);
+    }
+
+    private static void methodReference(String[] strings) {
+        Arrays.sort(strings, (first, second) ->
+                Integer.compare(first.length(), second.length()));
+
+        Arrays.sort(strings, Comparator.comparingInt((x) -> x.length()));
+
+        Arrays.sort(strings, Comparator.comparingInt(String::length));
+    }
+
+    private static void lambdaExpression(String[] strings) {
         /**
          * 람다식을 사용하지 않은 경우
          */
@@ -47,8 +96,7 @@ public class App {
 
         /**
          * 람다 표현식의 결과 타입은 지정하지 않는다. 결과 타입은 항상 문맥으로부터 추정된다.
-         */
-    }
+         */}
 
     static class LengthComparator implements Comparator<String> {
         @Override
