@@ -1,4 +1,4 @@
-package java8.default_method;
+package java8.interface_default_method;
 
 /**
  * Person과 Named 둘 다 getName() 이라는 디폴트 메서드를 가지고 있을 경우

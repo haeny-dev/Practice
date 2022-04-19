@@ -1,4 +1,4 @@
-package java8.default_method;
+package java8.interface_default_method;
 
 public interface Named {
     default String getName() {
