@@ -4,12 +4,14 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 
 public class App {
     public static void main(String[] args) {
+        int[] values = {1, 2, 3, 4, 5};
         String[] strings = {"apple", "banana", "cook", "driver", "element", "float", "grape", "cook"};
         List<String> words = Arrays.asList(strings);
 
@@ -21,6 +23,40 @@ public class App {
                 new City("경기도", "수원시", 300));
 
 
+
+    }
+
+    private static void parallelStream(String[] strings, List<String> words) {
+        /**
+         * 순차 스트림 -> 병렬 스트림 변환
+         */
+        Stream<String> parallelWords = Stream.of(strings).parallel();
+
+        /**
+         * 멀티 스레드 환경에서 안전하지 않은 코드
+         */
+        int[] shortWords = new int[12];
+        words.stream().parallel().forEach(w -> {
+            if (w.length() < 5) {
+                shortWords[w.length()]++;
+            }
+        });
+
+        System.out.println(Arrays.toString(shortWords));
+
+        Stream<String> limit = words.stream().parallel().unordered().limit(3);
+    }
+
+    private static void primitiveTypeStream(int[] values, List<String> words) {
+        IntStream intStream = IntStream.of(1, 2, 3, 4, 5);
+        IntStream streamFromArray = Arrays.stream(values, 0, 2);
+
+        IntStream zeroToNinetyNine = IntStream.range(0, 100);
+        IntStream zeroToHundred = IntStream.rangeClosed(0, 100);
+
+        IntStream lengths = words.stream().mapToInt(String::length);
+
+        Stream<Integer> boxed = IntStream.range(0, 100).boxed();
     }
 
     private static void streamGroupingAndPartitioning(Stream<Locale> locales, Stream<City> cities) {
