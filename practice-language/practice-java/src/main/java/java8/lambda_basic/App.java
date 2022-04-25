@@ -1,6 +1,5 @@
-package java8.lambda;
+package java8.lambda_basic;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
