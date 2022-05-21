@@ -1,4 +1,4 @@
-package net.acmicpc.step.basicmath2.problem3009;
+package net.acmicpc.step.geometry.problem3009;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package net.acmicpc.step.basicmath2.problem3053;
+package net.acmicpc.step.geometry.problem3053;
 
 import java.util.Scanner;
 
