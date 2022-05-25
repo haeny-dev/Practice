@@ -23,15 +23,15 @@ public class Main {
         int maxArea = Math.max(values[0], Math.max(values[2], values[4])) * Math.max(values[1], Math.max(values[3], values[5]));
         int excludeArea = 0;
 
-        for (int i = 0; i < 5; i++) {
-            if ((directions[i] == 1 && directions[i + 1] == 3)
-                    || (directions[i] == 2 && directions[i + 1] == 4)
-                    || (directions[i] == 3 && directions[i + 1] == 2)
-                    || (directions[i] == 4 && directions[i + 1] == 1)) {
-                excludeArea = values[i] * values[i + 1];
+        for (int i = 0; i < 6; i++) {
+            if ((directions[i] == 1 && directions[(i + 1) % 6] == 3)
+                    || (directions[i] == 2 && directions[(i + 1) % 6] == 4)
+                    || (directions[i] == 3 && directions[(i + 1) % 6] == 2)
+                    || (directions[i] == 4 && directions[(i + 1) % 6] == 1)) {
+                excludeArea = values[i] * values[(i + 1) % 6];
             }
         }
-
         System.out.println((maxArea - excludeArea) * K);
     }
 }
+
