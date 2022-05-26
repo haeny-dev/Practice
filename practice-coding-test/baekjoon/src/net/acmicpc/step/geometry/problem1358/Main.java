@@ -40,7 +40,8 @@ public class Main {
     }
 
     private static boolean contains(int x, int y) {
-        if (x >= X && x <= X + W && y >= Y && y <= y + H) {
+
+        if (x >= X && x <= X + W && y >= Y && y <= Y + H) {
             return true;
         }
 
@@ -48,7 +49,7 @@ public class Main {
             return true;
         }
 
-        if(x >= X + W && (R * R >= getDistancePow(x, y, X + R, Y + R))){
+        if(x >= X + W && (R * R >= getDistancePow(x, y, X + W, Y + R))){
             return true;
         }
 
