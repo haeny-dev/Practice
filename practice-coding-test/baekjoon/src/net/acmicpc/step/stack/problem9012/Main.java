@@ -23,7 +23,7 @@ public class Main {
 
         for (int i = 0; i < ps.length(); i++) {
             char c = ps.charAt(i);
-gi
+
             if (c == '(') {
                 flag++;
             } else {
